@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro"
+      xmlns:th="http://www.thymeleaf.org"
+>
+<head>
+    <meta charset="UTF-8">
+    <title>消息发布页面</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <style>
+    </style>
+</head>
+<body>
+
+<!--表格-->
+<table class="layui-hide" id="role_table" lay-filter="role_table" lay-skin="line"></table>
+
+</body>
+
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-group">
+        <button type="button" class="layui-btn" lay-event="addNewRole" shiro:hasPermission="notice:insert">
+            <span class="layui-icon layui-icon-release"></span>发布消息
+        </button>
+    </div>
+</script>
+<script type="text/html" id="tool">
+    <a class="layui-btn layui-btn-xs" lay-event="edit" shiro:hasPermission="notice:updateNotice">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" shiro:hasPermission="notice:delNotice">删除</a>
+</script>
+
+<script src="/layui/layui.all.js"></script>
+<script src="/js/core.util.js"></script>
+
+<script>
+    let $ = jQuery = layui.jquery;
+    let table = layui.table
+        , form = layui.form
+        , layer = layui.layer;
+
+    layui.use(['table', 'layer'], function () {
+
+        //渲染table
+        let loadTable = function (data) {
+            // console.log(data);
+            table.render({
+                elem: '#role_table'
+                , cols: [
+                    [
+                        {type: 'checkbox', fixed: 'left'},
+                        {field: 'typeName', fixed: 'left', title: '消息类型', width: 160},
+                        {field: 'noticeContent', title: '消息内容', width: 460},
+                        {field: 'updateUserName', title: '发布人', width: 130},
+                        {field: 'updateTime', title: '发布时间', width: 180},
+                        {width: 130, toolbar: "#tool", title: '操作', fixed: 'right'}
+                    ]
+                ]
+                , data: data
+                , loading: true
+                , even: true
+                , limit: data.length
+                , toolbar: '#toolbar'
+                , defaultToolbar: ['filter', 'print', 'exports']
+            });
+        };
+
+        //获取表格数据
+        function getTableData(){
+            CoreUtil.sendAjax("/notice/queryAll", null, function (res) {
+                if (res.data != null) {
+                    // console.log(res);
+                    loadTable(res.data);
+                }
+            }, "POST", false, function (res) {
+                layer.msg(res.msg);
+            });
+        }
+
+        //监听表格头部工具栏事件
+        table.on('toolbar(role_table)', function (obj) {
+            switch (obj.event) {
+                case 'addNewRole':
+                    layer.open({
+                        type: 2,
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: "发布消息",
+                        area: ['100%','100%'],
+                        content: '/index/publishNotice',
+                        btnAlign: 'c'
+                    });
+                    break;
+            }
+        });
+
+        function parseParams(data) {
+            try {
+                var tempArr = [];
+                for (var i in data) {
+                    var key = encodeURI(i);
+                    var value = encodeURI(data[i]);
+                    tempArr.push(key + '=' + value);
+                }
+                var urlParamsStr = tempArr.join('&');
+                return urlParamsStr;
+            } catch (err) {
+                return '';
+            }
+        }
+
+        //监听行工具事件
+        table.on('tool(role_table)', function (obj) {
+            switch (obj.event) {
+                case 'del':
+                    deleteDialog(obj.data.id);
+                    break;
+                case 'edit':
+                    layer.open({
+                        //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                        type: 2,
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: "更新消息",
+                        area: ['100%','100%'],
+                        content: '/index/publishNotice?id=' + obj.data.id,
+                        btnAlign: 'c'
+                    });
+                    break;
+            }
+        });
+
+        //是否删除确认框
+        let deleteDialog = function (id) {
+            layer.open({
+                content: '确定要删除该记录吗?',
+                yes: function (index, layero) {
+                    layer.close(index); //如果设定了yes回调，需进行手工关闭
+                    CoreUtil.sendAjax("/notice/delNotice/" + id, null, function (res) {
+                        layer.msg(res.msg);
+                        getTableData();
+                    }, "DELETE", false);
+                }
+            });
+        };
+
+        $(function () {
+            //加载表格
+            getTableData();
+        });
+
+        //供子页面调用
+        function refreshTable(msg){
+            layer.msg(msg);
+            getTableData();
+        }
+
+        window.refreshTable = refreshTable;
+
+    });
+</script>
+</html>

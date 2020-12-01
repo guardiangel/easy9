@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.colin.mapper.yw.YwFlwCheckMapper">
+
+  <resultMap id="BaseResultMap" type="org.colin.model.ro.YwFlwCheck">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="check_code" jdbcType="VARCHAR" property="checkCode" />
+    <result column="user_id" jdbcType="VARCHAR" property="userId" />
+    <result column="check_time" jdbcType="TIMESTAMP" property="checkTime" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="check_result" jdbcType="VARCHAR" property="checkResult" />
+    <result column="check_opinion" jdbcType="VARCHAR" property="checkOpinion" />
+    <result column="check_order" jdbcType="VARCHAR" property="checkOrder" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, check_code, user_id, check_time, check_result, check_opinion, check_order
+  </sql>
+
+  <!--根据流程申请的主键ID查询所有审核记录信息-->
+  <select id="getCheckList" parameterType="java.lang.String" resultType="org.colin.model.vo.resp.FlwCheckInfoRespVO">
+        select
+            t1.id, t1.check_code, t1.user_id, t1.check_time, t1.check_result, t1.check_opinion, t1.check_order, t1.create_time,
+            t2.real_name as userRealName
+        from yw_flw_check t1
+        LEFT JOIN sys_user t2 on t1.user_id = t2.id
+        LEFT JOIN yw_flw_request t3 on t1.check_code = t3.check_code
+        where t3.id = #{id} order by t1.create_time
+  </select>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from yw_flw_check
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from yw_flw_check
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="org.colin.model.ro.YwFlwCheck">
+    insert into yw_flw_check (id, check_code, user_id, 
+      check_time, check_result, check_opinion, 
+      check_order)
+    values (#{id,jdbcType=VARCHAR}, #{checkCode,jdbcType=VARCHAR}, #{userId,jdbcType=VARCHAR}, 
+      #{checkTime,jdbcType=TIMESTAMP}, #{checkResult,jdbcType=VARCHAR}, #{checkOpinion,jdbcType=VARCHAR}, 
+      #{checkOrder,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="org.colin.model.ro.YwFlwCheck">
+    insert into yw_flw_check
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="checkCode != null">
+        check_code,
+      </if>
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="checkTime != null">
+        check_time,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="checkResult != null">
+        check_result,
+      </if>
+      <if test="checkOpinion != null">
+        check_opinion,
+      </if>
+      <if test="checkOrder != null">
+        check_order,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="checkCode != null">
+        #{checkCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userId != null">
+        #{userId,jdbcType=VARCHAR},
+      </if>
+      <if test="checkTime != null">
+        #{checkTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="checkResult != null">
+        #{checkResult,jdbcType=VARCHAR},
+      </if>
+      <if test="checkOpinion != null">
+        #{checkOpinion,jdbcType=VARCHAR},
+      </if>
+      <if test="checkOrder != null">
+        #{checkOrder,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="org.colin.model.ro.YwFlwCheck">
+    update yw_flw_check
+    <set>
+      <if test="checkCode != null">
+        check_code = #{checkCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userId != null">
+        user_id = #{userId,jdbcType=VARCHAR},
+      </if>
+      <if test="checkTime != null">
+        check_time = #{checkTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="checkResult != null">
+        check_result = #{checkResult,jdbcType=VARCHAR},
+      </if>
+      <if test="checkOpinion != null">
+        check_opinion = #{checkOpinion,jdbcType=VARCHAR},
+      </if>
+      <if test="checkOrder != null">
+        check_order = #{checkOrder,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.colin.model.ro.YwFlwCheck">
+    update yw_flw_check
+    set check_code = #{checkCode,jdbcType=VARCHAR},
+      user_id = #{userId,jdbcType=VARCHAR},
+      check_time = #{checkTime,jdbcType=TIMESTAMP},
+      check_result = #{checkResult,jdbcType=VARCHAR},
+      check_opinion = #{checkOpinion,jdbcType=VARCHAR},
+      check_order = #{checkOrder,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

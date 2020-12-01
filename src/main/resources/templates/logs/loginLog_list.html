@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro"
+>
+<head>
+    <meta charset="UTF-8">
+    <title>登录日志管理页面</title>
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+    <!--引入我们在https://www.iconfont.cn平台生成的图标样式库-->
+    <link rel="stylesheet" href="/layui/css/modules/layui-icon-extend/iconfont.css" media="all">
+</head>
+<body>
+<div id="searchParam">
+    <div class="layui-form-item" shiro:hasPermission="sys:loginLogs:list">
+        <div class="layui-input-inline">
+            <input type="text" id="username" class="layui-input" autocomplete="off" placeholder="请输入账号">
+        </div>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" id="createTime" placeholder="创建时间">
+        </div>
+        <div class="layui-input-inline ">
+            <button class="layui-btn" id="search">
+                <span class="layui-icon layui-icon-search"></span>查询
+            </button>
+        </div>
+    </div>
+
+</div>
+<table class="layui-hide" id="log_table" lay-filter="log_table"></table>
+<div id="laypage" class="layui-laypage-btn"></div>
+</body>
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-group">
+        <button shiro:hasPermission="sys:loginLog:deleted" type="button" class="layui-btn" lay-event="deleteAll">
+            <i class="layui-icon">&#xe640;</i> 批量删除
+        </button>
+        <button shiro:hasPermission="sys:loginLogs:exportAllLoginLogExcel" type="button" class="layui-btn" lay-event="">
+            <a href="/sys/loginLogs/exportAllLoginLogExcel" style="color: #ffffff;">
+                <i class="iconfont layui-extend-daochu"></i> 全部导出
+            </a>
+        </button>
+    </div>
+</script>
+<script type="text/html" id="tool">
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" shiro:hasPermission="sys:loginLog:deleted">删除</a>
+</script>
+<script src="/layui/layui.all.js"></script>
+<script src="/js/core.util.js"></script>
+<script>
+    let table = layui.table;
+    let laypage = layui.laypage;
+    let form = layui.form;
+    let layer = layui.layer;
+    let $ = jQuery = layui.jquery;
+    let laydate = layui.laydate;
+    let flag;
+    layui.use(['table', 'laypage', 'layer', 'laydate'], function () {
+        let searchParam = {
+            username: null,
+            startTime: null,
+            endTime: null,
+            pageNum: 1,
+            pageSize: 10
+        };
+        CoreUtil.sendAjax("/sys/loginLogs", JSON.stringify(searchParam), function (res) {
+            //初始化分页器
+            laypageTable(res.data.totalRows, searchParam.pageNum);
+            //初始化渲染数据
+            if (res.data.list != null) {
+                loadTable(res.data.list);
+            }
+        }, "POST", false, function (res) {
+            layer.msg("抱歉！您暂无获取操作日志列表的权限");
+            let noAuthorityData = [];
+            loadTable(noAuthorityData);
+        });
+        //渲染分页插件
+        let laypageTable = function (count, currentPage) {
+            laypage.render({
+                elem: 'laypage'
+                , count: count
+                , limit: searchParam.pageSize
+                , layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip']
+                , curr: location.hash.replace('#!currentPage=', '') //获取起始页
+                , hash: 'currentPage' //自定义hash值
+                , limits: [10, 25, 50, 100, 300, 500, 2000]
+                , jump: function (obj, first) {
+                    if (!first) {
+                        flag = true;
+                        searchParam.pageNum = obj.curr;
+                        searchParam.pageSize = obj.limit;
+                        CoreUtil.sendAjax("/sys/loginLogs", JSON.stringify(searchParam), function (res) {
+                            if (res.data.list != null) {
+                                loadTable(res.data.list);
+                                laypageTable(res.data.totalRows, searchParam.pageNum);
+                            }
+                        }, "POST", false, function (res) {
+                            layer.msg("抱歉！您暂无获取操作日志列表的权限");
+                            let noAuthorityData = [];
+                            loadTable(noAuthorityData);
+                        });
+                    }
+                }
+            });
+        };
+
+        //渲染table
+        let loadTable = function (data) {
+            //展示已知数据
+            table.render({
+                elem: '#log_table'
+                , cols: [
+                    [
+                        {type: 'checkbox', fixed: 'left'},
+                        {type: 'xuhao', fixed: 'left', title: '序号', width: 50, type: 'numbers'},
+                        {field: 'userName', title: '登录账号', width: 120},
+                        {field: 'loginIp', title: '登录IP', width: 220},
+                        {field: 'loginAddress', title: '登录地点', width: 200},
+                        {field: 'loginBrowser', title: '登录浏览器', width: 200},
+                        {field: 'createTime', title: '登录时间', sort: true, width: 180},
+                        {width: 150, toolbar: "#tool", title: '操作'}
+                    ]
+                ]
+                , data: data
+                , even: true
+                , limit: data.length
+                , toolbar: '#toolbar'
+            });
+        };
+        //日期范围
+        laydate.render({
+            elem: '#createTime'
+            , type: 'datetime'
+            , range: '~'
+            , done: function (value, date, endDate) {
+                if (value != null && value != undefined && value != "") {
+                    searchParam.startTime = value.split("~")[0];
+                    searchParam.endTime = value.split("~")[1];
+                } else {
+                    //清空时间的时候要清空以前选择的日期
+                    searchParam.startTime = null;
+                    searchParam.endTime = null;
+                }
+            }
+        });
+        //执行查询
+        $("#search").click(function () {
+            searchParam.username = $("#username").val();
+            searchParam.pageNum = 1;
+            CoreUtil.sendAjax("/sys/loginLogs", JSON.stringify(searchParam), function (res) {
+                //初始化分页器
+                laypageTable(res.data.totalRows, searchParam.pageNum);
+                //初始化渲染数据
+                if (res.data.list != null) {
+                    loadTable(res.data.list);
+                }
+            }, "POST", false, function (res) {
+                layer.msg("抱歉！您暂无获取操作日志列表的权限");
+                let noAuthorityData = [];
+                loadTable(noAuthorityData);
+            });
+        });
+
+
+        //表头工具栏事件
+        table.on('toolbar(log_table)', function (obj) {
+            let checkStatus = table.checkStatus(obj.config.id);
+            switch (obj.event) {
+                case 'deleteAll':
+                    let data = checkStatus.data;
+                    if (data.length == 0) {
+                        layer.msg("请选择要批量删除的日志");
+                    } else {
+                        let logIds = [];
+                        $(data).each(function (index, item) {
+                            logIds.push(item.id);
+                        });
+                        tipDialog(logIds);
+                    }
+                    break;
+            }
+        });
+        //操作工具栏事件
+        table.on('tool(log_table)', function (obj) {
+            let data = obj.data;
+            switch (obj.event) {
+                case 'del':
+                    let logIds = [];
+                    logIds.push(data.id);
+                    tipDialog(logIds);
+                    break;
+            }
+        });
+
+        //删除前确认对话框
+        let tipDialog = function (logIds) {
+            layer.open({
+                content: '确定要删除么',
+                yes: function (index, layero) {
+                    layer.close(index); //如果设定了yes回调，需进行手工关闭
+                    CoreUtil.sendAjax("/sys/loginLogs", JSON.stringify(logIds), function (res) {
+                        layer.msg(res.msg);
+                        $(".layui-laypage-btn").click();
+                    }, "DELETE", false, function (res) {
+                        layer.msg("抱歉！您暂无删除操作日志的权限");
+                    });
+                }
+            });
+        }
+    });
+</script>
+</html>

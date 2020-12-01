@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+      <meta charset="utf-8">
+      <title>邮件消息通知</title>
+      <style type="text/css">
+            table {
+                  font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+                  width: 100%;
+                  border-collapse: collapse;
+            }
+
+            td,
+            th {
+                  font-size: 1em;
+                  border: 1px solid #5B4A42;
+                  padding: 13px 7px 12px 7px;
+            }
+      </style>
+</head>
+
+<body>
+      <div>
+            <h2>消息通知</h2>
+            <table id="customers">
+                  <tr>
+                        <td>姓名：${(params.userName)!""}</td>
+                  </tr>
+                  <tr>
+                        <td>事件：${(params.eventDesc)!""}</td>
+                  </tr>
+                  <tr>
+                        <td>时间：${(params.loginTime)!""}</td>
+                  </tr>
+                  <tr>
+                        <td>IP：${(params.loginIp)!""}</td>
+                  </tr>
+                  <tr>
+                        <td>IP地址：${(params.loginAddress)!""}</td>
+                  </tr>
+            </table>
+      </div>
+</body>
+
+</html>

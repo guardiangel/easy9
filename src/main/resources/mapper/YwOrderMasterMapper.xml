@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.colin.mapper.yw.YwOrderMasterMapper">
+
+    <resultMap id="BaseResultMap" type="org.colin.model.entity.yw.YwOrderMaster">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="order_number" jdbcType="VARCHAR" property="orderNumber"/>
+        <result column="cust_phone" jdbcType="VARCHAR" property="custPhone"/>
+        <result column="cust_building" jdbcType="VARCHAR" property="custBuilding"/>
+        <result column="total_price" jdbcType="DECIMAL" property="totalPrice"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, order_number, cust_phone, cust_building, total_price, create_time
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from yw_order_master
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from yw_order_master
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+    <insert id="insert" parameterType="org.colin.model.entity.yw.YwOrderMaster">
+    insert into yw_order_master (id, order_number, cust_phone, 
+      cust_building, total_price, create_time
+      )
+    values (#{id,jdbcType=VARCHAR}, #{orderNumber,jdbcType=VARCHAR}, #{custPhone,jdbcType=VARCHAR}, 
+      #{custBuilding,jdbcType=VARCHAR}, #{totalPrice,jdbcType=DECIMAL}, #{createTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+    <insert id="insertSelective" parameterType="org.colin.model.entity.yw.YwOrderMaster">
+        insert into yw_order_master
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="orderNumber != null">
+                order_number,
+            </if>
+            <if test="custPhone != null">
+                cust_phone,
+            </if>
+            <if test="custBuilding != null">
+                cust_building,
+            </if>
+            <if test="totalPrice != null">
+                total_price,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="orderNumber != null">
+                #{orderNumber,jdbcType=VARCHAR},
+            </if>
+            <if test="custPhone != null">
+                #{custPhone,jdbcType=VARCHAR},
+            </if>
+            <if test="custBuilding != null">
+                #{custBuilding,jdbcType=VARCHAR},
+            </if>
+            <if test="totalPrice != null">
+                #{totalPrice,jdbcType=DECIMAL},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="org.colin.model.entity.yw.YwOrderMaster">
+        update yw_order_master
+        <set>
+            <if test="orderNumber != null">
+                order_number = #{orderNumber,jdbcType=VARCHAR},
+            </if>
+            <if test="custPhone != null">
+                cust_phone = #{custPhone,jdbcType=VARCHAR},
+            </if>
+            <if test="custBuilding != null">
+                cust_building = #{custBuilding,jdbcType=VARCHAR},
+            </if>
+            <if test="totalPrice != null">
+                total_price = #{totalPrice,jdbcType=DECIMAL},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="org.colin.model.entity.yw.YwOrderMaster">
+    update yw_order_master
+    set order_number = #{orderNumber,jdbcType=VARCHAR},
+      cust_phone = #{custPhone,jdbcType=VARCHAR},
+      cust_building = #{custBuilding,jdbcType=VARCHAR},
+      total_price = #{totalPrice,jdbcType=DECIMAL},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

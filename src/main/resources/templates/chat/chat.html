@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <link rel="stylesheet" href="/chat/css/bootstrap.css"/>
+    <title>欢乐聊天室</title>
+    <style>
+        .sendBtn {
+            width: 68px;
+            height: 45px;
+            border: none;
+            position: absolute;
+            bottom: 51px;
+            right: 32px;
+        }
+
+        .userPhotoImgStyle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+
+        .currentUserPhotoStyle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+<div class="container" >
+    <div class="row">
+        <div class="col-md-3">
+            <div class="panel panel-primary" id="online">
+                <div class="panel-heading">
+                    <h3 class="panel-title">当前在线的其他用户</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="list-group" id="users" style="height:196px;overflow-y:scroll">
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">群发消息</h3>
+                </div>
+                <div class="panel-body">
+                    <input type="text" class="form-control"  id="msg"/><br>
+                    <button id="broadcast" type="button" class="btn btn-primary">发送</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-9" style="height: auto;">
+            <div class="panel panel-primary">
+                <div class="panel-heading" style="height: 40px;">
+                    <h3 class="panel-title" id="talktitle"></h3>
+                </div>
+                <div class="panel-body">
+<!--                    <div class="well" id="log-container" style="height:400px;overflow-y:scroll">-->
+                    <div class="well" id="log-container" style="height:300px;overflow-y:scroll">
+                    </div>
+
+<!--                    <input type="text" id="myinfo" class="form-control col-md-12" rows="3"/> <br>-->
+                    <textarea class="form-control" id="myinfo" rows="3"></textarea>
+                    <button id="send" type="button" class="btn btn-primary sendBtn">发送</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script src="/layui/layui.all.js"></script>
+<script src="/js/jquery-2.0.3.js"></script>
+<script src="/js/core.util.js"></script>
+<script type="text/javascript">
+
+    Date.prototype.format = function(fmt) {
+        var o = {
+            "M+" : this.getMonth()+1,                 //月份
+            "d+" : this.getDate(),                    //日
+            "h+" : this.getHours(),                   //小时
+            "m+" : this.getMinutes(),                 //分
+            "s+" : this.getSeconds(),                 //秒
+            "q+" : Math.floor((this.getMonth()+3)/3), //季度
+            "S"  : this.getMilliseconds()             //毫秒
+        };
+        if(/(y+)/.test(fmt)) {
+            fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length));
+        }
+        for(var k in o) {
+            if(new RegExp("("+ k +")").test(fmt)){
+                fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));
+            }
+        }
+        return fmt;
+    };
+
+    //回车键发送消息
+    $(document).keypress(function (e) {
+        if ((e.keyCode || e.which) == 13) {
+            $("#send").click();
+        }
+    });
+
+    let chatWebsocket = null;
+    var realName = "";
+    let webSocketIp = CoreUtil.getSystemBaseIP();
+    var currentUserPhoto = '';//当前登录者用户头像
+
+    //判断当前浏览器是否支持WebSocket
+    if ('WebSocket' in window) {
+        CoreUtil.sendAjax("/sys/home/", null, function (res) {
+            var userId = res.data.userInfo.id;
+            currentUserPhoto = res.data.userInfo.photo;
+            realName = res.data.userInfo.realName;//当前登录者用户真实姓名
+
+            chatWebsocket = new WebSocket("ws://" + webSocketIp +　":8000/chatWebSocket/" + userId);
+            //连接发生错误的回调方法
+            chatWebsocket.onerror = function () {
+                layer.msg("webSocket连接发生错误");
+                console.log("webSocket连接发生错误")
+            };
+
+            //连接成功建立的回调方法
+            chatWebsocket.onopen = function () {
+                layer.msg("欢迎进入聊天室");
+                console.log("webSocket连接成功")
+            };
+
+            //接收到消息的回调方法，此处添加处理接收消息方法，将接收到的信息显示在网页上
+            chatWebsocket.onmessage = function (event) {
+                var data = JSON.parse(event.data);//解析接收到的消息
+                CoreUtil.sendAjax("/chat/onlineusers/" + realName, null, function (res) {
+                    // $("#users > a").remove(":contains('"+data.text+"')");//删除某个人
+                    $("#users > a").remove();//先删除所有在线人数，然后在赋值
+                    for(var i=0; i<res.data.length; i++){
+                        if(res.data[i].realName != realName){
+                            $("#users").append('<a href="#" onclick="talk(this)" class="list-group-item"><img class="userPhotoImgStyle" src="' + res.data[i].userPhoto + '">' + res.data[i].realName + '</a>');
+                        }
+                    }
+                    //其他人上线或者下线提示信息
+                    if(data.to == "0"){
+                        if(data.text != realName){
+                            layer.msg("用户[" + data.text + "]上线了");
+                        }
+                    }else if(data.to == "-2"){
+                        if(data.text != realName){
+                            layer.msg("用户[" + data.text + "]下线了");
+                        }
+                    }else {
+                        // 普通消息
+                        // 接收服务端的实时消息并添加到HTML页面中
+                        $("#log-container").append("<div class='bg-info'><img class='currentUserPhotoStyle' src='" + data.userPhoto + "'><label class='text-danger'>" + data.from + "&nbsp;" + data.date + "</label><div class='text-success' style='margin-top: 10px;'>" + data.text + "</div></div><br>");
+                        // 滚动条滚动到最低部
+                        scrollToBottom();
+                    }
+                }, "GET", false);
+            };
+            chatWebsocket.onclose = function () {
+                console.log("WebSocket连接关闭");
+            };
+        }, "GET", false);
+    } else {
+        layer.msg("当前浏览器不支持WebSocket，建议使用谷歌浏览器");
+    }
+
+    $("#broadcast").click(function(){
+        var message = $("#msg").val();
+        message = message.replace(/[ ]/g, "");//去掉空格
+        message = message.replace(/[\r\n]/g, "");//去掉回车、换行
+        if(message != ''){
+            var data = {};
+            data["from"] = realName + "(群发消息)";
+            data["to"] = -1;
+            data["text"] = message;
+            $("#msg").val("");
+            chatWebsocket.send(JSON.stringify(data));
+        }else{
+            $("#msg").val("");
+        }
+    });
+
+    $("#send").click(function() {
+        if ($("body").data("to") == undefined) {
+            layer.msg("请选择聊天对象");
+            return false;
+        }
+        var message = $("#myinfo").val();
+        message = message.replace(/[ ]/g, "");//去掉空格
+        message = message.replace(/[\r\n]/g, "");//去掉回车、换行
+        if(message != ''){
+            var data = {};
+            data["from"] = realName;
+            data["to"] = $("body").data("to");
+            data["text"] = message;
+            chatWebsocket.send(JSON.stringify(data));
+            $("#log-container").append("<div class='bg-success'><img class='currentUserPhotoStyle' src='" + currentUserPhoto + "'><label class='text-info'>我&nbsp;" + new Date().format("yyyy-MM-dd hh:mm:ss") + "</label><div class='text-info' style='margin-top: 10px;'>" + $("#myinfo").val() + "</div></div><br>");
+            $("#myinfo").val("");
+            scrollToBottom();
+        }else{
+            $("#myinfo").val("");
+        }
+    });
+
+    function talk(obj){
+        $("#talktitle").text("与" + obj.innerText + "的聊天");
+        $("body").data("to", obj.innerText);
+    }
+
+    function scrollToBottom(){
+        var div = document.getElementById('log-container');
+        div.scrollTop = div.scrollHeight;
+    }
+</script>
+</html>

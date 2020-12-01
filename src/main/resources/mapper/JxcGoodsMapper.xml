@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.colin.mapper.yw.JxcGoodsMapper">
+
+  <resultMap id="BaseResultMap" type="org.colin.model.ro.JxcGoods">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="create_user" jdbcType="VARCHAR" property="createUser" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="update_user" jdbcType="VARCHAR" property="updateUser" />
+    <result column="goods_type" jdbcType="VARCHAR" property="goodsType" />
+    <result column="goods_name" jdbcType="VARCHAR" property="goodsName" />
+    <result column="goods_code" jdbcType="VARCHAR" property="goodsCode" />
+    <result column="goods_model" jdbcType="VARCHAR" property="goodsModel" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, create_time, create_user, update_time, update_user, goods_type, goods_name, goods_code, 
+    goods_model
+  </sql>
+  <!--根据商品类型查询所有商品信息-->
+  <select id="getAllGoodsByGoodsType" parameterType="java.lang.String" resultType="org.colin.model.vo.resp.JxcGoodsRespVO">
+        select
+        t1.id, t1.create_time, t1.create_user, t1.update_time, t1.update_user, t1.goods_type, t1.goods_name, t1.goods_code, t1.goods_model,
+        t2.real_name as createUserName, t3.real_name as updateUserName, t4.dic_value as goodsTypeDesc
+        from jxc_goods t1
+        left join sys_user t2 on t1.create_user = t2.id
+        left join sys_user t3 on t1.update_user = t3.id
+        left join sys_dic_info t4 on t1.goods_type = t4.dic_code and t4.type_code = 'GOODSTYPE'
+        where t1.goods_type  = #{goodsType}
+  </select>
+  <!--查询所有商品-->
+  <select id="getAllGoods" parameterType="org.colin.model.vo.req.JxcGoodsReqVO" resultType="org.colin.model.vo.resp.JxcGoodsRespVO">
+        select
+        t1.id, t1.create_time, t1.create_user, t1.update_time, t1.update_user, t1.goods_type, t1.goods_name, t1.goods_code, t1.goods_model,
+        t2.real_name as createUserName, t3.real_name as updateUserName, t4.dic_value as goodsTypeDesc
+        from jxc_goods t1
+        left join sys_user t2 on t1.create_user = t2.id
+        left join sys_user t3 on t1.update_user = t3.id
+        left join sys_dic_info t4 on t1.goods_type = t4.dic_code and t4.type_code = 'GOODSTYPE'
+        <where>
+          <if test="goodsType != null and goodsType != '' ">
+            AND t1.goods_type  = #{goodsType}
+          </if>
+          <if test="goodsName != null and goodsName != '' ">
+            AND t1.goods_name LIKE concat('%',#{goodsName},'%')
+          </if>
+          <if test="goodsCode != null and goodsCode != '' ">
+            AND t1.goods_code LIKE concat('%',#{goodsCode},'%')
+          </if>
+          <if test="goodsModel != null and goodsModel != '' ">
+            AND t1.goods_model LIKE concat('%',#{goodsModel},'%')
+          </if>
+        </where>
+        order by t1.update_time desc
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultType="org.colin.model.vo.resp.JxcGoodsRespVO">
+        select
+        t1.id, t1.create_time, t1.create_user, t1.update_time, t1.update_user, t1.goods_type, t1.goods_name, t1.goods_code, t1.goods_model,
+        t2.real_name as createUserName, t3.real_name as updateUserName, t4.dic_value as goodsTypeDesc
+        from jxc_goods t1
+        left join sys_user t2 on t1.create_user = t2.id
+        left join sys_user t3 on t1.update_user = t3.id
+        left join sys_dic_info t4 on t1.goods_type = t4.dic_code and t4.type_code = 'GOODSTYPE'
+        where t1.id = #{id}
+  </select>
+  <!--根据商品名称和商品型号查询商品信息-->
+  <select id="selectByNameAndModel" parameterType="java.lang.String" resultType="org.colin.model.vo.resp.JxcGoodsRespVO">
+        select
+        t1.id, t1.create_time, t1.create_user, t1.update_time, t1.update_user, t1.goods_type, t1.goods_name, t1.goods_code, t1.goods_model,
+        t2.real_name as createUserName, t3.real_name as updateUserName
+        from jxc_goods t1
+        left join sys_user t2 on t1.create_user = t2.id
+        left join sys_user t3 on t1.update_user = t3.id
+        where t1.goods_name = #{goodsName} and t1.goods_model = #{goodsModel}
+        order by t1.update_time desc
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from jxc_goods
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="org.colin.model.ro.JxcGoods">
+    insert into jxc_goods (id, create_time, create_user, 
+      update_time, update_user, goods_type, 
+      goods_name, goods_code, goods_model
+      )
+    values (#{id,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{createUser,jdbcType=VARCHAR}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{updateUser,jdbcType=VARCHAR}, #{goodsType,jdbcType=VARCHAR}, 
+      #{goodsName,jdbcType=VARCHAR}, #{goodsCode,jdbcType=VARCHAR}, #{goodsModel,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="org.colin.model.ro.JxcGoods">
+    insert into jxc_goods
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="createUser != null">
+        create_user,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="updateUser != null">
+        update_user,
+      </if>
+      <if test="goodsType != null">
+        goods_type,
+      </if>
+      <if test="goodsName != null">
+        goods_name,
+      </if>
+      <if test="goodsCode != null">
+        goods_code,
+      </if>
+      <if test="goodsModel != null">
+        goods_model,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createUser != null">
+        #{createUser,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateUser != null">
+        #{updateUser,jdbcType=VARCHAR},
+      </if>
+      <if test="goodsType != null">
+        #{goodsType,jdbcType=VARCHAR},
+      </if>
+      <if test="goodsName != null">
+        #{goodsName,jdbcType=VARCHAR},
+      </if>
+      <if test="goodsCode != null">
+        #{goodsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="goodsModel != null">
+        #{goodsModel,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="org.colin.model.ro.JxcGoods">
+    update jxc_goods
+    <set>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createUser != null">
+        create_user = #{createUser,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateUser != null">
+        update_user = #{updateUser,jdbcType=VARCHAR},
+      </if>
+      <if test="goodsType != null">
+        goods_type = #{goodsType,jdbcType=VARCHAR},
+      </if>
+      <if test="goodsName != null">
+        goods_name = #{goodsName,jdbcType=VARCHAR},
+      </if>
+      <if test="goodsCode != null">
+        goods_code = #{goodsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="goodsModel != null">
+        goods_model = #{goodsModel,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.colin.model.ro.JxcGoods">
+    update jxc_goods
+    set create_time = #{createTime,jdbcType=TIMESTAMP},
+      create_user = #{createUser,jdbcType=VARCHAR},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      update_user = #{updateUser,jdbcType=VARCHAR},
+      goods_type = #{goodsType,jdbcType=VARCHAR},
+      goods_name = #{goodsName,jdbcType=VARCHAR},
+      goods_code = #{goodsCode,jdbcType=VARCHAR},
+      goods_model = #{goodsModel,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

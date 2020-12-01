@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title>意见反馈管理页面</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/css/custom.form.css">
+</head>
+<body>
+<!--条件搜索-->
+<div id="searchParam">
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">内容</label>
+            <div class="layui-input-inline">
+                <input type="text" id="content" class="layui-input" autocomplete="off">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">提交人</label>
+            <div class="layui-input-inline">
+                <input type="text" name="updateUserIdName" id="updateUserIdName" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">提交时间</label>
+            <div class="layui-input-inline">
+                <input type="text" class="layui-input" id="createTime">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">类型</label>
+            <div class="layui-input-inline layui-form">
+                <select name="type" id="type">
+                    <option value="">请选择</option>
+                    <option value="1">意见反馈</option>
+                    <option value="2">喜欢我们</option>
+                    <option value="3">商务合作</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">来源</label>
+            <div class="layui-input-inline layui-form">
+                <select name="source" id="source">
+                    <option value="">请选择</option>
+                    <option value="1">平台</option>
+                    <option value="2">北方社区</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label"></label>
+            <div class="layui-input-inline layui-form">
+                <button class="layui-btn" id="search">
+                    <span class="layui-icon layui-icon-search"></span>查询
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<table class="layui-hide" id="object_table" lay-filter="object_table" lay-skin="line"></table>
+<div id="laypage" class="$('.layui-laypage-btn').click();"></div>
+
+<div id="userInfoDetailDiv" style="display:none;">
+    <div style="margin-left: 100px;margin-top: 20px;">
+        <div style="min-height: 30px;margin-bottom: 10px;">
+            <img src="" id="photo" style="width: 95px;height: 95px;"/>
+        </div>
+        <div style="min-height: 30px;">
+            真实姓名：<span id="realName"></span>
+        </div>
+        <div style="min-height: 30px;">
+            登录帐号：<span id="username"></span>
+        </div>
+        <div style="min-height: 30px;">
+            昵称：<span id="nickName"></span>
+        </div>
+        <div style="min-height: 30px;">
+            性别：<span id="sex"></span>
+        </div>
+        <div style="min-height: 30px;">
+            所属部门：<span id="deptName"></span>
+        </div>
+        <div style="min-height: 30px;">
+            手机号：<span id="phone"></span>
+        </div>
+        <div style="min-height: 30px;">
+            邮箱：<span id="email"></span>
+        </div>
+        <div style="min-height: 30px;">
+            积分：<span id="point"></span>
+        </div>
+        <div style="min-height: 30px;">
+            账号状态：<span id="status"></span>
+        </div>
+        <div style="min-height: 30px;">
+            创建来源：<span id="createWhere"></span>
+        </div>
+    </div>
+</div>
+</body>
+
+<script type="text/html" id="tool">
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" shiro:hasPermission="sys:suggestion:delete">删除</a>
+</script>
+
+<script src="/layui/layui.all.js"></script>
+<script src="/js/core.util.js"></script>
+<script>
+    let $ = jQuery = layui.jquery;
+    let table = layui.table
+        , laypage = layui.laypage
+        , form = layui.form
+        , layer = layui.layer
+        , laydate = layui.laydate
+        , tree = layui.tree;
+    layui.use(['table', 'laypage', 'layer', 'laydate', 'tree'], function () {
+
+        //搜索条件
+        let searchParam = {
+            updateUserIdName: null,
+            content: null,
+            type: null,
+            source: null,
+            startTime: null,
+            endTime: null,
+            pageNum: 1,
+            pageSize: 10
+        };
+
+        //日期范围
+        laydate.render({
+            elem: '#createTime'
+            , type: 'datetime'
+            , range: '~'
+            , done: function (value, date, endDate) {
+                if (value != null && value != undefined && value != "") {
+                    searchParam.startTime = value.split("~")[0];
+                    searchParam.endTime = value.split("~")[1];
+                } else {
+                    //清空时间的时候要清空以前选择的日期
+                    searchParam.startTime = null;
+                    searchParam.endTime = null;
+                }
+            }
+        });
+
+        //执行查询条件
+        $("#search").click(function () {
+            searchParam.updateUserIdName = $("#updateUserIdName").val();
+            searchParam.content = $("#content").val();
+            searchParam.type = $("#type").val();
+            searchParam.source = $("#source").val();
+            searchParam.pageNum = 1;
+            CoreUtil.sendAjax("/sys/suggestion/list", JSON.stringify(searchParam), function (res) {
+                //初始化分页器
+                laypageTable(res.data.totalRows, searchParam.pageNum);
+                //初始化渲染数据
+                if (res.data.list != null) {
+                    loadTable(res.data.list);
+                }
+            }, "POST", false, function (res) {
+                layer.msg("抱歉！您暂无获取列表的权限");
+                let noAuthorityData = [];
+                loadTable(noAuthorityData);
+            });
+        });
+
+        $(document).ready(function(){
+            //分页获取列表信息接口
+            CoreUtil.sendAjax("/sys/suggestion/list", JSON.stringify(searchParam), function (res) {
+                // console.log(res);
+                laypageTable(res.data.totalRows, searchParam.pageNum);
+                if (res.data.list != null) {
+                    loadTable(res.data.list);
+                }
+            }, "POST", false, function (res) {
+                layer.msg("抱歉！您暂无获取列表的权限");
+                let noAuthorityData = [];
+                loadTable(noAuthorityData);
+            });
+        });
+
+        //分页条
+        let laypageTable = function (count, currentPage) {
+            laypage.render({
+                elem: 'laypage'
+                , count: count
+                , limit: searchParam.pageSize
+                , layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip']
+                , curr: location.hash.replace('#!currentPage=', '') //获取起始页
+                , hash: 'currentPage' //自定义hash值
+                , limits: [10, 25, 50, 100, 300, 500, 2000]
+                , jump: function (obj, first) {
+                    if (!first) {
+                        searchParam.pageNum = obj.curr;
+                        searchParam.pageSize = obj.limit;
+                        CoreUtil.sendAjax("/sys/suggestion/list", JSON.stringify(searchParam), function (res) {
+                            if (res.data.list != null) {
+                                loadTable(res.data.list);
+                                laypageTable(res.data.totalRows, searchParam.pageNum);
+                            }
+                        }, "POST", false, function (res) {
+                            layer.msg("抱歉！您暂无获取列表信息的权限");
+                            let noAuthorityData = [];
+                            loadTable(noAuthorityData);
+                        });
+                    }
+                }
+            });
+        };
+
+        //渲染table
+        let loadTable = function (data) {
+            table.render({
+                elem: '#object_table'
+                , cols: [
+                    [
+                        {type: 'xuhao', fixed: 'left', title: '序号', width: 50, type: 'numbers'},
+                        {field: 'updateUserIdName', title: '提交人', width: 100, event: 'userInfoDetail', style:'cursor: pointer;'},
+                        {field: 'content', title: '提交内容', width: 400},
+                        {field: 'updateTime', title: '提交时间', width: 160, sort: true},
+                        {
+                            field: 'type', title: '类型', width: 110, templet: function (item) {
+                                if (item.type === '1') {
+                                    return '意见反馈';
+                                }
+                                else if (item.type === '2') {
+                                    return '喜欢我们';
+
+                                }
+                                else if (item.type === '3') {
+                                    return '商务合作';
+
+                                }
+                                else {
+                                    return '<span class="layui-badge layui-bg-blue">未知</span>';
+                                }
+                            }
+                        },
+                        {
+                            field: 'source', title: '来源', width: 110, templet: function (item) {
+                                if (item.source === '1') {
+                                    return '平台';
+                                }
+                                else if (item.source === '2') {
+                                    return '北方社区';
+                                }
+                                else {
+                                    return '<span class="layui-badge layui-bg-blue">未知</span>';
+                                }
+                            }
+                        },
+                        {width: 120, toolbar: "#tool", title: '操作', fixed: 'right'}
+                    ]
+                ]
+                , data: data
+                , loading: true
+                , even: true
+                , limit: data.length
+                // , toolbar: '#toolbar'
+            });
+        };
+
+        //监听行工具事件
+        table.on('tool(object_table)', function (obj) {
+            let data = obj.data;
+            switch (obj.event) {
+                case 'del':
+                    sureDelete(data.id);//删除
+                    break;
+                case 'userInfoDetail':
+                    userInfoDetail(data.updateUserId);//查看用户详情
+                    break;
+            }
+        });
+
+        //显示用户详细信息
+        let userInfoDetail = function(userId){
+            CoreUtil.sendAjax("/sys/getUserInfoByUserId/" + userId, null, function (res) {
+                console.log(res);
+                $("#photo").attr("src", res.data.photo);
+                $("#realName").html(res.data.realName);
+                $("#nickName").html(res.data.nickName);
+                $("#username").html(res.data.username);
+                if(res.data.sex == '1'){
+                    $("#sex").html("男");
+                }else{
+                    $("#sex").html("女");
+                }
+                $("#deptName").html(res.data.deptName);
+                $("#phone").html(res.data.phone);
+                $("#email").html(res.data.email);
+                $("#point").html(res.data.point);
+                if(res.data.status == '1'){
+                    $("#status").html("正常");
+                }else{
+                    $("#status").html("锁定");
+                }
+                if(res.data.createWhere == '1'){
+                    $("#createWhere").html("web");
+                }else if(res.data.createWhere == '2'){
+                    $("#createWhere").html("android");
+                }else if(res.data.createWhere == '3'){
+                    $("#createWhere").html("ios");
+                }
+            }, "GET", false, function (res) {
+                console.log(res);
+                layer.msg(res.msg);
+            });
+            layer.open({
+                //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                type: 1,
+                resize: false, //是否允许拉伸
+                maxmin: false, //最大最小化
+                title: "个人资料",
+                area: ['80%', '100%'],//宽，高
+                shadeClose: true, //点击弹层外区域关闭
+                content: $("#userInfoDetailDiv")
+            });
+        };
+
+        //是否删除确认框
+        let sureDelete = function (pkId) {
+            layer.open({
+                content: '确定要删除该记录吗?',
+                yes: function (index, layero) {
+                    layer.close(index); //如果设定了yes回调，需进行手工关闭
+                    CoreUtil.sendAjax("/sys/suggestion/delete/" + pkId, null, function (res) {
+                        layer.msg(res.msg);
+                        $(".layui-laypage-btn").click();
+                    }, "DELETE", false);
+                }
+            });
+        };
+    });
+</script>

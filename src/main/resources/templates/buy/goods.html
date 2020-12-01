@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title>商品管理页面</title>
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+</head>
+<body>
+<div>
+    <div>
+        <!--社区商家树型模块-->
+        <div style="width: 15%;float: left;">
+            <div style="font-size: 16px;color: #060606;">请选择商家：</div>
+            <table class="layui-table layui-form" id="commStore-tree-table" lay-size="sm"></table>
+        </div>
+        <!--商品管理模块-->
+        <div style="float: left;margin-left: 10px;">
+            <div>
+                <input id="storeId" hidden/>
+                <div style="font-size: 16px;color: #060606;">商品列表：</div>
+                <table id="obj_table" lay-filter="obj_table"></table>
+
+                <div class="layui-row operation_object" id="object-content" style="display:none;">
+                    <form class="layui-form layui-form-pane" action="" style="margin-top: 10px;margin-left: 10px;margin-right: 10px;" lay-filter="objectEditFilter" autocomplete="off">
+                        <input name="id" hidden/>
+                        <input name="storeId" id="storeIdInput" hidden/>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">商品类型</label>
+                            <div class="layui-input-block">
+                                <input type="radio" name="type" value="2" title="商品" lay-filter="radio-type"/>
+                                <input type="radio" name="type" value="1" title="商品类型" lay-filter="radio-type"/>
+                            </div>
+                        </div>
+                        <div class="layui-form-item div-pid">
+                            <label class="layui-form-label">商品种类</label>
+                            <div class="layui-input-block">
+                                <select name="pid" id="pid" lay-search="">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">名称</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="goodsName" placeholder="请输入名称" lay-verify="required" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item div-goodsPrice">
+                            <label class="layui-form-label">商品单价</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="goodsPrice" placeholder="请输入商品单价(单位：元)" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item div-status">
+                            <label class="layui-form-label">状态</label>
+                            <div class="layui-input-block">
+                                <input type="checkbox" value="1" checked="" name="status" lay-skin="switch" lay-filter="switch-status" lay-text="有货|无货"/>
+                            </div>
+                        </div>
+                        <div class="layui-form-item div-stock">
+                            <div class="layui-form-label ">库存数量</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="stock" placeholder="请输入库存数量" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-form-label ">排序</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="orderNum" placeholder="请输入序号" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div style="text-align: center;">
+                                <button type="submit" class="layui-btn" lay-submit="" lay-filter="edit-object-submit">保存</button>
+                                <button class="layui-btn layui-btn-primary" id="btn_cancel">返回</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="margin-top: 40px;margin-bottom: 40px;">
+        <hr class="layui-bg-orange">
+    </div>
+    <!--所有商品树型模块-->
+    <div>
+        <table class="layui-table layui-form" id="tree-table" lay-size="sm"></table>
+    </div>
+</div>
+</body>
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-group">
+        <button type="button" class="layui-btn layui-btn-sm" lay-event="addObject" shiro:hasPermission="buy:goods:add">
+            <i class="layui-icon">&#xe608;</i> 新增商品
+        </button>
+    </div>
+</script>
+<script type="text/html" id="tool">
+    <a class="layui-btn layui-btn-xs" lay-event="edit" shiro:hasPermission="buy:goods:update">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" shiro:hasPermission="buy:goods:deleted">删除</a>
+</script>
+
+<script src="/layui/layui.all.js"></script>
+<script src="/js/core.util.js"></script>
+<script th:inline="none">
+    let form = layui.form;
+    let table = layui.table;
+    let layer = layui.layer;
+    let $ = jQuery = layui.jquery;
+    layui.config({
+        base: '/'
+    }).extend({
+        treeTable: 'js/treeTable'
+    }).use(['treeTable', 'form', 'layer', 'table'], function () {
+            treeTable = layui.treeTable;
+
+            //加载商品种类信息
+            let loadPid = function (storeIdVal, selectedId) {
+                CoreUtil.sendAjax("/buy/getAllGoodsTypeByStoreId/" + storeIdVal, null, function (res) {
+                    let objList = res.data;
+                    let html = '';
+                    if (objList != null) {
+                        html += "<option value=''>请选择商品种类</option>";
+                        $.each(objList, function (key, value) {
+                            if (value.id == selectedId) {
+                                html += "<option selected value='" + value.id + "'>" + value.goodsName + "</option>";
+                            } else {
+                                html += "<option value='" + value.id + "'>" + value.goodsName + "</option>";
+                            }
+                        })
+                    } else {
+                        html += "<option value=''>暂无数据</option>";
+                    }
+                    $('select[name=pid]').html(html);
+                    layui.form.render("select");
+
+                    // $("#pid").empty();//首先清空所有option
+                    // let objList = res.data;
+                    // if (objList != null) {
+                    //     $('#pid').append(new Option('请选择商品种类', ''));
+                    //     $.each(objList, function (key, value) {
+                    //         $('#pid').append(new Option(value.goodsName, value.id));//往下拉菜单里添加元素
+                    //     })
+                    // } else {
+                    //     $('#pid').append(new Option('暂无数据', ''));
+                    // }
+                    // form.render(); //更新全部表单内容
+                    //layui.form.render('select'); //刷新表单select选择框渲染
+                }, "POST", false, function (res) {
+                    layer.msg("抱歉！您暂无获取数据的权限");
+                });
+            };
+
+            //给表格填充数据
+            let loadGoodsTable = function () {
+                let storeIdVal = $('#storeId').val();
+                CoreUtil.sendAjax("/buy/goodsAll/" + storeIdVal, null, function (res) {
+                    //初始化渲染数据
+                    if (res.data != null) {
+                        loadTable(res.data);
+                    }
+                }, "POST", false, function (res) {
+                    layer.msg("抱歉！您暂无获取列表的权限");
+                    let noAuthorityData = [];
+                    loadTable(noAuthorityData);
+                });
+            };
+
+            //渲染table
+            let loadTable = function (data) {
+                table.render({
+                    elem: '#obj_table'
+                    , cols: [
+                        [
+                            {type: 'xuhao', fixed: 'left', title: '序号', width: 50, type: 'numbers'},
+                            {field: 'goodsTypeName', title: '商品种类', width: 120, sort: false},
+                            {field: 'goodsName', title: '商品名称', width: 350, sort: false},
+                            {field: 'goodsPrice', title: '商品价格(元)', width: 120},
+                            {field: 'stock', title: '库存数量', width: 120},
+                            {field: 'orderNum', title: '排序', width: 90},
+                            {field: 'createTime', title: '创建时间', sort: true, minWidth: 180},
+                            {
+                                field: 'status', title: '状态', width: 100, templet: function (item) {
+                                    if (item.status == 1) {
+                                        return '<a class="layui-btn layui-btn-xs">有货</a>';
+                                    } else if (item.status == 0) {
+                                        return '<a class="layui-btn layui-btn-xs layui-btn-danger">无货</a>';
+                                    }
+                                }
+                            },
+                            {width: 180, toolbar: "#tool", title: '操作'}
+                        ]
+                    ]
+                    , data: data
+                    , even: true
+                    , limit: data.length
+                    , toolbar: '#toolbar'
+                });
+            };
+
+            //监听表格头部工具栏事件
+            table.on('toolbar(obj_table)', function (obj) {
+                let data = obj.data;
+                switch (obj.event) {
+                    case 'addObject':
+                        form.val("objectEditFilter", {
+                            "goodsName": ''
+                            , "id": ''
+                            , "pid": ''
+                            , "goodsPrice": ''
+                            , "storeId": ''
+                            , "stock": ''
+                            , "orderNum": ''
+                            , "type": '2'
+                        });
+                        layer.open({
+                            //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                            type: 1,
+                            resize: false, //是否允许拉伸
+                            maxmin: false, //最大最小化
+                            title: "新增商品",
+                            area: ['750px', '500px'],
+                            content: $("#object-content") //引用的弹出层的页面层的方式加载修改界面表单
+                        });
+                        $('#storeIdInput').val($('#storeId').val());//赋值
+                        loadPid($('#storeId').val(), '');//加载商品种类
+                        break;
+                }
+            });
+
+            //监听提交-编辑/新增信息弹框
+            form.on('submit(edit-object-submit)', function (data) {
+                if (data.field.id === undefined || data.field.id === null || data.field.id === "") {
+                    CoreUtil.sendAjax("/buy/goods", JSON.stringify(data.field), function (res) {
+                        layer.closeAll(); //疯狂模式，关闭所有层
+                        layer.msg(res.msg);
+                        loadGoodsTable();//重新加载表格
+                    }, "POST", false, function (res) {
+                        layer.msg("抱歉！您暂无新增权限");
+                    });
+                } else {
+                    CoreUtil.sendAjax("/buy/goods", JSON.stringify(data.field), function (res) {
+                        layer.closeAll(); //疯狂模式，关闭所有层
+                        layer.msg(res.msg);
+                        loadGoodsTable();//重新加载表格
+                    }, "PUT", false, function (res) {
+                        layer.msg("抱歉！您暂无编辑权限");
+                    });
+                }
+                return false;
+            });
+
+            //编辑时，回显数据，填充表格
+            function setFormValue(obj) {
+                let data = obj.data;
+                form.val("objectEditFilter", {
+                    "goodsName": data.goodsName
+                    , "id": data.id
+                    , "goodsPrice": data.goodsPrice
+                    , "storeId": data.storeId
+                    , "stock": data.stock
+                    , "orderNum": data.orderNum
+                    , "type": data.type
+                    , "status": data.status
+                });
+                loadPid($('#storeId').val(), data.pid);//加载商品种类
+            }
+
+            //监听行工具事件
+            table.on('tool(obj_table)', function (obj) {
+                let data = obj.data;
+                switch (obj.event) {
+                    case 'del':
+                        tipDialog(data.id);
+                        break;
+                    case 'edit':
+                        layer.open({
+                            //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                            type: 1,
+                            resize: false, //是否允许拉伸
+                            maxmin: false, //最大最小化
+                            title: "修改商品信息",
+                            area: ['650px'],
+                            content: $("#object-content") //引用的弹出层的页面层的方式加载修改界面表单
+                        });
+                        //回显数据，填充表格
+                        setFormValue(obj);
+                        break;
+                }
+            });
+
+            //删除前确认对话框
+            let tipDialog = function (id) {
+                layer.open({
+                    content: '确定要删除么',
+                    yes: function (index, layero) {
+                        layer.close(index); //如果设定了yes回调，需进行手工关闭
+                        CoreUtil.sendAjax("/buy/goods/" + id, null, function (res) {
+                            layer.msg(res.msg);
+                            loadGoodsTable();//重新加载表格
+                        }, "DELETE", false, function (res) {
+                            layer.msg("抱歉！您暂无删除权限");
+                        });
+                    }
+                });
+            }
+
+            //监听单选框按钮点击事件
+            form.on('radio(radio-type)', function (data) {
+                if (data.value == '1') {
+                    //商品类型
+                    $(".div-goodsPrice").hide();//隐藏单价
+                    $(".div-status").hide();//隐藏状态
+                    $(".div-stock").hide();//隐藏库存数量
+                    $(".div-pid").hide();//隐藏商品种类
+                } else if (data.value == '2') {
+                    loadPid($('#storeId').val(), '');//加载商品种类
+                    //商品
+                    $(".div-goodsPrice").show();//显示单价
+                    $(".div-status").show();//显示状态
+                    $(".div-stock").show();//显示库存数量
+                    $(".div-pid").show();//显示商品种类
+                }
+            });
+
+            //监听状态开关
+            form.on('switch(switch-status)', function () {
+                $(".operation_object input[name=status]").attr('type', 'hidden').val(this.checked ? 1 : 0);
+            });
+
+            //选择商家
+            let commStore = treeTable.render({
+                elem: '#commStore-tree-table',
+                url: '/buy/commStoreTree',
+                primary_key: 'id',
+                parent_key: 'pid',
+                icon_key: 'nodeName',// 必须
+                icon: {
+                    open: 'layui-icon layui-icon-triangle-d',
+                    close: 'layui-icon layui-icon-triangle-r',
+                    left: 16,
+                },
+                is_checkbox: true, //是否显示复选框
+                is_cache: false,
+                is_click_icon: false,
+                end: function (e) {
+                    form.render();
+                },
+                cols: [
+                    {
+                        key: 'nodeName',
+                        title: '名称',
+                        align: 'left'
+                    }
+                    , {
+                        key: 'nodeType',
+                        title: '类型',
+                        align: 'left',
+                        template: function (item) {
+                            if (item.nodeType == 1) {
+                                return '<a class="layui-btn layui-btn-xs">社区</a>';
+                            } else if (item.nodeType == 2) {
+                                return '<a class="layui-btn layui-btn-xs layui-btn-normal">商家</a>';
+                            }
+                        }
+                    }
+                ]
+            });
+
+            //所有商品树型表格渲染
+            let demo = treeTable.render({
+                elem: '#tree-table',
+                url: '/buy/goodsAll',
+                primary_key: 'id',
+                parent_key: 'pid',
+                icon_key: 'goodsName',// 必须
+                icon: {
+                    open: 'layui-icon layui-icon-triangle-d',
+                    close: 'layui-icon layui-icon-triangle-r',
+                    left: 16,
+                },
+                is_checkbox: false, //是否显示复选框
+                is_cache: false,
+                is_click_icon: false,
+                // checked: {
+                //     key: 'id',
+                //     data: [0, 1, 4, 10, 11, 5, 2, 6, 7, 3, 8, 9],
+                // },
+                end: function (e) {
+                    form.render();
+                },
+                cols: [
+                    {
+                        key: 'storeName',
+                        title: '商家',
+                        align: 'center',
+                    }
+                    , {
+                        key: 'goodsName',
+                        title: '名称',
+                        align: 'left'
+                    }
+                    , {
+                        key: 'goodsPrice',
+                        title: '价格(元)',
+                        align: 'center',
+                        template: function (item) {
+                            if (item.goodsPrice == null) {
+                                return '';
+                            } else {
+                                return item.goodsPrice;
+                            }
+                        }
+                    }
+                    , {
+                        key: 'status',
+                        title: '状态',
+                        // width: '100px',
+                        align: 'center',
+                        template: function (item) {
+                            if (item.status == null) {
+                                return '';
+                            } else {
+                                if (item.status == 1) {
+                                    return '<a class="layui-btn layui-btn-xs">有货</a>';
+                                } else if (item.status == 0) {
+                                    return '<a class="layui-btn layui-btn-xs layui-btn-danger">无货</a>';
+                                }
+                            }
+                        }
+                    }
+                    , {
+                        key: 'stock',
+                        title: '库存数量',
+                        align: 'center',
+                        template: function (item) {
+                            if (item.stock == null) {
+                                return '';
+                            } else {
+                                return item.stock;
+                            }
+                        }
+                    }
+                    , {
+                        key: 'type',
+                        title: '类型',
+                        align: 'center',
+                        template: function (item) {
+                            if (item.type == null) {
+                                return '';
+                            } else {
+                                if (item.type == 1) {
+                                    return '<a class="layui-btn layui-btn-xs">商品类型</a>';
+                                } else if (item.type == 2) {
+                                    return '<a class="layui-btn layui-btn-xs layui-btn-normal">商品</a>';
+                                }
+                            }
+                        }
+                    }
+                    , {
+                        key: 'orderNum',
+                        title: '排序',
+                        align: 'center',
+                    }
+                    , {
+                        key: 'createTime',
+                        title: '创建时间',
+                        align: 'center',
+                    }
+                    , {
+                        title: '操作',
+                        align: 'center',
+                        template: function (item) {
+                            if (item.type == 1) {
+                                return '<a lay-filter="delete" style="cursor: pointer;">删除</a>';
+                            } else {
+                                return '';
+                            }
+                        }
+                    }
+                ]
+            });
+
+            // 监听自定义
+            treeTable.on('tree(delete)', function (data) {
+                //layer.msg(JSON.stringify(data.item));
+                layer.open({
+                    content: '确定要删除[' + data.item.goodsName + ']么',
+                    yes: function (index, layero) {
+                        layer.close(index); //如果设定了yes回调，需进行手工关闭
+                        CoreUtil.sendAjax("/buy/goods/" + data.item.id, null, function (res) {
+                            layer.msg(res.msg);
+                            window.location.reload();//刷新当前页面
+                        }, "DELETE", false, function (res) {
+                            layer.msg("抱歉！您暂无删除权限");
+                        });
+                    }
+                });
+            });
+
+            // 监听checkbox选择
+            treeTable.on('tree(box)', function (data) {
+                // layer.msg(JSON.stringify(data.item));
+                if (data.is_checked) {
+                    //选中
+                    if (data.item.nodeType === 2) {
+                        //选择商家节点时
+                        $('#storeId').val(data.item.id);
+                        loadGoodsTable();//点击商家时，显示该商家所有商品表格
+                    }
+                } else {
+                    //取消选中
+                    let emptyData = [];
+                    loadTable(emptyData);
+                }
+            });
+        }
+    );
+</script>
+</html>

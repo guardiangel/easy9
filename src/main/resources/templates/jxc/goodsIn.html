@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro"
+>
+<head>
+    <meta charset="UTF-8">
+    <title>进销存管理-商品入库管理页面</title>
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+    <!--引入我们在https://www.iconfont.cn平台生成的图标样式库-->
+    <link rel="stylesheet" href="/layui/css/modules/layui-icon-extend/iconfont.css" media="all">
+    <style>
+        .layui-form-label.layui-required:after{
+            content:"*";
+            color:red;
+            position: absolute;
+            top:9px;
+            margin-left: 3px;
+        }
+    </style>
+</head>
+<body>
+
+<!--查询-->
+<div id="searchParam">
+    <div class="layui-form-item">
+        <div class="layui-input-inline layui-form">
+            <select id="goodsType2" name="goodsType" class="select">
+            </select>
+        </div>
+        <div class="layui-input-inline layui-form">
+            <select id="whCode2" name="whCode" class="select">
+            </select>
+        </div>
+        <div class="layui-input-inline layui-form">
+            <input type="text" name="goodsName" id="goodsName2" class="layui-input" placeholder="请输入商品名称">
+        </div>
+        <div class="layui-input-inline layui-form">
+            <input type="text" name="goodsCode" id="goodsCode2" class="layui-input" placeholder="请输入商品编号">
+        </div>
+        <div class="layui-input-inline layui-form">
+            <input type="text" name="goodsModel" id="goodsModel2" class="layui-input" placeholder="请输入商品型号">
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn" id="search">
+                <span class="layui-icon layui-icon-search"></span>查询
+            </button>
+        </div>
+    </div>
+</div>
+
+<!--新增/编辑-->
+<div class="layui-row operation_div" id="addUpdateDivId" style="display:none;">
+    <form class="layui-form" action="" lay-filter="addUpdateFilter" id="addUpdateFilter" style="width: 600px;margin-top: 10px;margin-left: 60px;">
+        <div class="layui-form-item">
+            <label class="layui-form-label layui-required">商品</label>
+            <div class="layui-input-block">
+                <input name="goodsCode" hidden/>
+                <input type="text" name="goodsCodeDesc" placeholder="请选择商品" autocomplete="off" class="layui-input" lay-verify="required" style="background:#eeeeee!important">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label layui-required">入库仓库</label>
+            <div class="layui-input-block">
+                <select id="whCode" name="whCode" class="select">
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label layui-required">入库数量</label>
+            <div class="layui-input-block">
+                <input type="number" name="inCount" id="inCount" autocomplete="off" class="layui-input" lay-verify="required">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label layui-required">入库单位</label>
+            <div class="layui-input-block">
+                <input type="text" name="goodsUnit" id="goodsUnit" autocomplete="off" class="layui-input" lay-verify="required">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label layui-required">入库单价</label>
+            <div class="layui-input-block">
+                <input type="text" name="goodsPrice" id="goodsPrice" autocomplete="off" class="layui-input" lay-verify="required|number">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label layui-required">入库人姓名</label>
+            <div class="layui-input-block">
+                <input type="text" name="inPerson" id="inPerson" autocomplete="off" class="layui-input" lay-verify="required">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label layui-required">联系方式</label>
+            <div class="layui-input-block">
+                <input type="text" name="inPersonPhone" id="inPersonPhone" autocomplete="off" class="layui-input" lay-verify="required|number">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">商品规格</label>
+            <div class="layui-input-block">
+                <input type="text" name="goodsSpec" id="goodsSpec" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">入库描述</label>
+            <div class="layui-input-block">
+                <textarea name="inDesc" class="layui-textarea"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button type="submit" class="layui-btn" lay-submit="" lay-filter="edit-user-submit">保存</button>
+                <button class="layui-btn layui-btn-primary" id="btn_cancel">返回</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div id="allGoodsTree" style="display: none"></div>
+
+<table class="layui-hide" id="log_table" lay-filter="log_table"></table>
+<div id="laypage" class="layui-laypage-btn"></div>
+
+</body>
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-group">
+        <button shiro:hasPermission="jxc:goodsIn:insert" type="button" class="layui-btn" lay-event="addObject">
+            <i class="layui-icon">&#xe608;</i> 新增商品入库
+        </button>
+    </div>
+</script>
+<script type="text/html" id="tool">
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" shiro:hasPermission="jxc:goodsIn:delete">删除</a>
+</script>
+<script src="/layui/layui.all.js"></script>
+<script src="/js/core.util.js"></script>
+<script>
+    let table = layui.table;
+    let laypage = layui.laypage;
+    let form = layui.form;
+    let layer = layui.layer;
+    let $ = jQuery = layui.jquery;
+    let selectNode = null;
+
+    layui.use(['table', 'laypage', 'layer', 'tree'], function () {
+        let tree = layui.tree;
+
+        let searchParam = {
+            goodsType: null,
+            goodsName: null,
+            goodsCode: null,
+            goodsModel: null,
+            whCode: null,
+            startTime: null,
+            endTime: null,
+            pageNum: 1,
+            pageSize: 10
+        };
+
+        CoreUtil.sendAjax("/jxc/getAllWareHouseSelect", null, function (res) {
+            if(res != null && res.data != null && res.data.length > 0){
+                $("#whCode").append(new Option("请选择仓库", ""));
+                $.each(res.data, function(index, item){
+                    //往下拉菜单里添加元素
+                    $('#whCode').append(new Option(item.whName, item.whCode));
+                });
+
+                $("#whCode2").append(new Option("请选择仓库", ""));
+                $.each(res.data, function(index, item){
+                    //往下拉菜单里添加元素
+                    $('#whCode2').append(new Option(item.whName, item.whCode));
+                });
+                form.render("select");//菜单渲染 把内容加载进去
+            }else{
+                $("#whCode").append(new Option("暂无数据", ""));
+                $("#whCode2").append(new Option("暂无数据", ""));
+            }
+        }, "GET", false, function (res) {
+            layer.msg(res.msg);
+        });
+
+        //查询按钮点击事件
+        $("#search").click(function () {
+            searchParam.goodsType = $("#goodsType2").val();
+            searchParam.goodsName = $("#goodsName2").val();
+            searchParam.goodsCode = $("#goodsCode2").val();
+            searchParam.goodsModel = $("#goodsModel2").val();
+            searchParam.whCode = $("#whCode2").val();
+            searchParam.pageNum = 1;
+            CoreUtil.sendAjax("/jxc/goodsIn/pageList", JSON.stringify(searchParam), function (res) {
+                laypageTable(res.data.totalRows, searchParam.pageNum);
+                if (res.data.list != null) {
+                    loadTable(res.data.list);
+                }
+            }, "POST", false, function (res) {
+                layer.msg(res.msg);
+                let noAuthorityData = [];
+                loadTable(noAuthorityData);
+            });
+        });
+
+        $(".operation_div input[name=goodsCodeDesc]").click(function () {
+            layer.open({
+                type: 1,
+                offset: '0px',
+                skin: 'layui-layer-molv',
+                title: "选择商品",
+                area: ['80%', '100%'],
+                shade: 0,
+                shadeClose: false,
+                content: jQuery("#allGoodsTree"),
+                btn: ['确定', '取消'],
+                yes: function (index) {
+                    if (selectNode.data != null) {
+                        $(".operation_div input[name=goodsCode]").val(selectNode.data.id);
+                        $(".operation_div input[name=goodsCodeDesc]").val(selectNode.data.title);
+                    }
+                    layer.close(index);
+                }
+            });
+        });
+
+        //加载商品树型选择框
+        let loadGoodsTree = function(){
+            CoreUtil.sendAjax("/jxc/getAllGoodsTreeSelect", null, function (res) {
+                tree.render({
+                    elem: '#allGoodsTree'
+                    , data: res.data
+                    , onlyIconControl: true  //是否仅允许节点左侧图标控制展开收缩
+                    , click: function (obj) {
+                        selectNode = obj;
+                        layer.msg('您已选择商品：' + JSON.stringify(selectNode.data.title));
+                    }
+                });
+            }, "GET", false, function (res) {
+                layer.msg(res.msg);
+            });
+        };
+
+        CoreUtil.sendAjax("/sys/dic/getSelectDicByTypeCode", null, function (res) {
+            if(res != null && res.data != null && res.data.length > 0){
+                $.each(res.data, function(index, item){
+                    if('GOODSTYPE' == item.typeCode){
+                        $("#goodsType").append(new Option("请选择商品类型", ""));
+                        if(item.dicInfo != null && item.dicInfo.length > 0){
+                            $.each(item.dicInfo, function(index2, item2){
+                                //往下拉菜单里添加元素
+                                $('#goodsType').append(new Option(item2.dicValue, item2.dicCode));
+                            });
+                        }else{
+                            $("#goodsType").append(new Option("暂无数据", ""));
+                        }
+                        $("#goodsType2").append(new Option("请选择商品类型", ""));
+                        if(item.dicInfo != null && item.dicInfo.length > 0){
+                            $.each(item.dicInfo, function(index2, item2){
+                                //往下拉菜单里添加元素
+                                $('#goodsType2').append(new Option(item2.dicValue, item2.dicCode));
+                            });
+                        }else{
+                            $("#goodsType2").append(new Option("暂无数据", ""));
+                        }
+                    }
+                });
+                form.render("select");//菜单渲染 把内容加载进去
+            }else{
+                layer.msg("数据字典信息无数据");
+            }
+        }, "GET", false, function (res) {
+            layer.msg(res.msg);
+        });
+
+        CoreUtil.sendAjax("/jxc/goodsIn/pageList", JSON.stringify(searchParam), function (res) {
+            //初始化分页器
+            laypageTable(res.data.totalRows, searchParam.pageNum);
+            //初始化渲染数据
+            if (res.data.list != null) {
+                loadTable(res.data.list);
+            }
+        }, "POST", false, function (res) {
+            layer.msg(res.msg);
+            let noAuthorityData = [];
+            loadTable(noAuthorityData);
+        });
+
+        //监听提交-新增信息弹框
+        form.on('submit(edit-user-submit)', function (data) {
+            CoreUtil.sendAjax("/jxc/goodsIn/insert", JSON.stringify(data.field), function (res) {
+                layer.closeAll(); //疯狂模式，关闭所有层
+                layer.msg(res.msg);
+                $(".layui-laypage-btn").click();
+            }, "POST", false, function (res) {
+                layer.msg(res.msg);
+            });
+            return false;
+        });
+
+        //渲染分页插件
+        let laypageTable = function (count, currentPage) {
+            laypage.render({
+                elem: 'laypage'
+                , count: count
+                , limit: searchParam.pageSize
+                , layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip']
+                , curr: location.hash.replace('#!currentPage=', '') //获取起始页
+                , hash: 'currentPage' //自定义hash值
+                , limits: [10, 25, 50, 100, 300, 500, 2000]
+                , jump: function (obj, first) {
+                    if (!first) {
+                        searchParam.pageNum = obj.curr;
+                        searchParam.pageSize = obj.limit;
+                        CoreUtil.sendAjax("/jxc/goodsIn/pageList", JSON.stringify(searchParam), function (res) {
+                            if (res.data.list != null) {
+                                loadTable(res.data.list);
+                                laypageTable(res.data.totalRows, searchParam.pageNum);
+                            }
+                        }, "POST", false, function (res) {
+                            layer.msg(res.msg);
+                            let noAuthorityData = [];
+                            loadTable(noAuthorityData);
+                        });
+                    }
+                }
+            });
+        };
+
+        //渲染table
+        let loadTable = function (data) {
+            //展示已知数据
+            table.render({
+                elem: '#log_table'
+                , cols: [
+                    [
+                        {type: 'checkbox', fixed: 'left'},
+                        {type: 'xuhao', fixed: 'left', title: '序号', width: 50, type: 'numbers'},
+                        {field: 'goodsCode', title: '商品编号', width: 120},
+                        {field: 'goodsName', title: '商品名称', width: 220},
+                        {field: 'goodsModel', title: '商品型号', width: 140},
+                        {field: 'goodsTypeDesc', title: '商品类型', width: 120},
+                        {field: 'whCodeDesc', title: '入库仓库', width: 260, sort: false},
+                        {field: 'inCount', title: '入库数量', width: 120, sort: true},
+                        {field: 'goodsUnit', title: '商品单位', width: 100},
+                        {field: 'goodsPrice', title: '单价￥', width: 100, sort: true},
+                        {field: 'goodsTotalPrice', title: '总价￥', width: 100, sort: true},
+                        {field: 'inPerson', title: '入库人姓名', width: 120},
+                        {field: 'inPersonPhone', title: '入库人联系方式', width: 160},
+                        {field: 'goodsSpec', title: '商品规格', width: 190},
+                        {field: 'inDesc', title: '入库描述', width: 260},
+                        {field: 'createTime', title: '创建时间', sort: true, width: 170},
+                        {field: 'createUserName', title: '创建人', sort: false, width: 100},
+                        {width: 150, toolbar: "#tool", title: '操作', fixed: 'right'}
+                    ]
+                ]
+                , data: data
+                , even: true
+                , limit: data.length
+                , toolbar: '#toolbar'
+            });
+        };
+
+        //监听操作工具栏事件
+        table.on('tool(log_table)', function (obj) {
+            let data = obj.data;
+            switch (obj.event) {
+                case 'del':
+                    tipDialog(data.id);
+                    break;
+            }
+        });
+
+        //监听表格头部工具栏事件
+        table.on('toolbar(log_table)', function (obj) {
+            switch (obj.event) {
+                case 'addObject':
+                    //重置表单数据
+                    $("#addUpdateFilter")[0].reset();
+                    form.render();
+                    //打开弹框
+                    layer.open({
+                        //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                        type: 1,
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: "新增商品入库信息",
+                        area: ['90%', '90%'],
+                        content: $("#addUpdateDivId") //引用的弹出层的页面层的方式加载修改界面表单
+                    });
+                    loadGoodsTree();
+                    break;
+            }
+        });
+
+        //删除前确认对话框
+        let tipDialog = function (id) {
+            layer.open({
+                content: '确定要删除么',
+                yes: function (index, layero) {
+                    layer.close(index); //如果设定了yes回调，需进行手工关闭
+                    CoreUtil.sendAjax("/jxc/goodsIn/delete/" + id, null, function (res) {
+                        layer.msg(res.msg);
+                        $(".layui-laypage-btn").click();
+                    }, "DELETE", false, function (res) {
+                        layer.msg(res.msg);
+                    });
+                }
+            });
+        }
+    });
+</script>
+</html>

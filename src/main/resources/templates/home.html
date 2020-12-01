@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name='viewport' content='width=device-width initial-scale=1'>
+    <title>Easy9云平台</title>
+    <!--引入layui默认的css样式-->
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all"/>
+    <link rel="icon" type="image/x-icon" href="/images/easy9.ico"/>
+    <!--引入我们在https://www.iconfont.cn平台生成的图标样式库-->
+    <link rel="stylesheet" href="/layui/css/modules/layui-icon-extend/iconfont.css" media="all"/>
+    <style>
+        .layui-tab-title .layui-this {
+            background-color: #009688;
+            color: #eee;
+        }
+
+        .layui-this2 {
+        }
+
+        .first-tab i.layui-tab-close {
+            display: none !important;
+        }
+
+        .layui-layout-admin .layui-body {
+            top: 49px;
+            bottom: 0px;
+        }
+
+        .user-photo-img {
+            width: 50px;
+            height: 50px;
+            margin-right: 1px;
+            border-radius: 50%;
+        }
+
+        .layui-tab-content{
+            padding: 5px;
+        }
+
+        .bottomDivClass{
+            font-size: 15px;
+            /*color: #00968a;*/
+            text-align: center;
+            bottom: 2px;
+        }
+    </style>
+</head>
+<!--参考 layui 后台布局-->
+<body class="layui-layout-body">
+
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo" style="font-size: 22px;">
+            <img src="/images/system_ico.png" style="width: 33px;height: 30px;"/>
+            <span id="sysNameId2"></span>
+        </div>
+        <a onclick="hideLeftMenu()" style="color: #009688; font-size: 10px;cursor: pointer;position: absolute;margin-left: 210px;margin-top: 18px;">
+            <img src="" id="menuImgId" style="width: 26px;height: 26px;"/>
+        </a>
+        <!-- 头部区域（可配合layui已有的水平导航） -->
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item layui-hide-xs">
+                <a id="onLineWebSocket" href="javascript:;"></a>
+            </li>
+            <li class="layui-nav-item layui-hide-xs">
+                <a id="deptName" href="javascript:;"></a>
+            </li>
+            <li class="layui-nav-item" style="margin-right: 0px;">
+                <a href="javascript:;" id="system_msg" style="width: 130px;"></a>
+            </li>
+            <li class="layui-nav-item layui-hide-xs">
+                <a href="javascript:;" style="margin-right: 15px">
+                    <img id="userPhoto" src="" class="user-photo-img">
+                    <span id="nickName"></span>
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="javascript:;" data-id="userProper" data-title="修改资料" data-url="/index/users/info" class="menuNvaBar">我的资料</a></dd>
+                    <dd><a href="javascript:;" data-id="updatePassword" data-title="修改密码" data-url="/index/users/updatePassword" class="menuNvaBar">密码修改</a></dd>
+                    <dd><a href="javascript:;" data-id="suggestion" data-title="意见反馈" data-url="/index/addSuggestion" class="menuNvaBar">意见反馈</a></dd>
+                    <!--
+                    <dd><a href="javascript:;" data-id="userSafe" data-title="安全设置" data-url="/index/users/password" class="menuNvaBar">更换密码</a></dd>
+                    <dd><a href="javascript:;" data-id="userSafe" data-title="关于我们" data-url="/index/about" class="menuNvaBar">关于我们</a></dd>
+                    -->
+                </dl>
+            </li>
+            <li class="layui-nav-item layui-hide-xs">
+                <a href="javascript:;" id="logout" class="iconfont layui-extend-tuichu">
+                    退出
+                </a>
+            </li>
+        </ul>
+    </div>
+    <!-- 左侧菜单-->
+    <div id="mainmenu" class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <div class="navBar layui-side-scroll" id="navBarId"></div>
+        </div>
+    </div>
+    <div class="layui-body" id="layui-body-id">
+        <!-- 内容主体区域 -->
+        <div class="layui-tab" lay-filter="tab" lay-allowclose="true">
+            <ul class="layui-tab-title">
+                <li class="first-tab layui-this">主页</li>
+            </ul>
+            <div class="layui-tab-content">
+                <div class="layui-tab-item layui-show">
+                    <iframe th:src="@{/index/main}" frameborder="0" name="content" width="100%" id="home"></iframe>
+                </div>
+            </div>
+            <div class="bottomDivClass">
+<!--                <a target="_blank" href="http://www.beian.gov.cn" style=""><img src="/images/beian.png" style=""/><span style="color:#1e9fff;margin-left: 5px;">鄂公网安备 42011102004061号</span></a>-->
+                <a onclick="linkUs()" style="cursor: pointer;color:#1e9fff;">
+                    <span id="sysNameId"></span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="systemMsg" style="display:none;">
+    <div class="layui-col-md6" style="width: 100%;">
+        <div class="layui-card">
+            <div class="layui-card-body">
+                <ul class="layui-timeline">
+                    <span id="systemMsgShow"></span>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--联系我们-->
+<div class="layui-row" id="linkUsId" style="display:none;">
+    <div class="layui-tab">
+        <ul class="layui-tab-title">
+            <li class="layui-this">关于我们</li>
+            <li>微信赞助</li>
+            <li>支付宝赞助</li>
+        </ul>
+        <div class="layui-tab-content">
+            <div class="layui-tab-item layui-show">
+                <div style="text-align:center;margin-top: 40px;font-size: 15px;color: #1e9fff;letter-spacing: 5px;line-height: 35px;">
+                    <p>
+                        我们是一群技术狂热分子</br>
+                        同时也热爱生活，向往爱情</br>
+                        但愿，在这里</br>
+                        我们能共同发现某些美好...
+                    </p>
+                </div>
+            </div>
+            <div class="layui-tab-item">
+                <div style="text-align: center;margin-top: 40px;">
+                    <img src="/images/weixin_money.jpg" style="height: 260px;width: 260px;"/>
+                    <p style="color: #1e9fff;">这或许无法给我们带来多大的物质支撑</br>却是一种充满友爱的表达方式</br>我们并非行乞者，却并不拒绝赞赏！</p>
+                </div>
+            </div>
+            <div class="layui-tab-item">
+                <div style="text-align: center;margin-top: 40px;">
+                    <img src="/images/zhifubao_weixin_money.jpg" style="height: 260px;width: 260px;"/>
+                    <p style="color: #1e9fff;">这或许无法给我们带来多大的物质支撑</br>却是一种充满友爱的表达方式</br>我们并非行乞者，却并不拒绝赞赏！</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="noticeMarker"></div>
+</body>
+<script src="/layui/layui.all.js"></script>
+<script src="/js/core.util.js"></script>
+<script src="/jsan-notice/mods/mods.js"></script>
+<script>
+    let layer = layui.layer;
+    let $ = jQuery = layui.jquery;
+    let form = layui.form;
+    let element = layui.element;
+    let unReadMessageCount;
+    let onLineWebSocket = null;
+
+    $(function () {
+        FrameWH();
+        //递归获取导航栏无限层级
+        let getChild = function (item, ulHtml) {
+            ulHtml += '<dl class="layui-nav-child">';
+            $.each(item, function (index, child) {
+                if (child.children != null && child.children.length > 0) {
+                    ulHtml += '<a>' + child.title + '</a>';
+                    ulHtml += getChild(child.children, "");
+                } else {
+                    ulHtml += '<dd><a href="javascript:;" data-url="' + child.url + '" data-title="' + child.title + '" data-id="' + child.id + '" class="menuNvaBar">';
+                    if (child.icon) {
+                        ulHtml += '<i class="iconfont ' + child.icon + '"></i>';
+                    } else {
+                        //没有设置图标的话，就给默认图标
+                        ulHtml += '<i class="iconfont layui-extend-jewelry"></i>';
+                    }
+                    ulHtml += '<cite>' + child.title + '</cite></a></dd>';
+                }
+
+            });
+            ulHtml += "</dl>"
+            return ulHtml;
+        };
+
+        CoreUtil.sendAjax("/sys/home/", null, function (res) {
+            $("#deptName").html("所属部门：" + res.data.userInfo.deptName);
+            $("#nickName").html(res.data.userInfo.realName);
+            let systemMsgHtml = '';
+            unReadMessageCount = res.data.unReadMsgCount;
+            if (res.data.unReadMsgCount == 0) {
+                systemMsgHtml = '<span class="iconfont layui-extend-huabanfuben15" style="margin-right: 0px;">系统消息</span><span class="layui-badge layui-bg-green">' + res.data.unReadMsgCount + '/' + res.data.msgCount + '</span>';
+            } else {
+                systemMsgHtml = '<span class="iconfont layui-extend-huabanfuben15" style="margin-right: 0px;">系统消息</span><span class="layui-badge">' + res.data.unReadMsgCount + '/' + res.data.msgCount + '</span>';
+            }
+            $("#system_msg").html(systemMsgHtml);
+            $("#userPhoto").attr("src", res.data.userInfo.photo);
+            let data = res.data.menus;
+            if (data != "" && data.length > 0) {
+                let ulHtml = '<ul class="layui-nav layui-nav-tree layui-left-nav">';
+                if (data != null && data.length > 0) {
+                    $.each(data, function (index, item) {
+                        if (index == 0) {
+                            //如果是第一级菜单就展开（加上layui-nav-itemed就展开）
+                            // ulHtml += '<li class="layui-nav-item layui-nav-itemed">';
+                            ulHtml += '<li class="layui-nav-item">';
+                        } else {
+                            //第二级菜单
+                            ulHtml += '<li class="layui-nav-item">';
+                        }
+                        ulHtml += '<a href="javascript:;">';
+                        if (item.icon) {
+                            ulHtml += '<i class="iconfont ' + item.icon + '"></i>';
+                        } else {
+                            //没有设置图标的话，就给默认图标
+                            ulHtml += '<i class="iconfont layui-extend-jewelry"></i>';
+                        }
+                        ulHtml += '<cite style="margin-left: 8px;">' + item.title + '</cite>';
+                        ulHtml += '</a>'
+                        if (item.children != null && item.children.length > 0) {
+                            ulHtml += '<dl class="layui-nav-child">';
+                            $.each(item.children, function (index, child) {
+                                if (child.children != null && child.children.length > 0) {
+                                    ulHtml += '<a>' + child.title + '</a>';
+                                    ulHtml += getChild(child.children, "");
+                                } else {
+                                    ulHtml += '<dd><a style="margin-left: 10px;" href="javascript:;" data-url="' + child.url + '" data-title="' + child.title + '" data-id="' + child.id + '" class="menuNvaBar">';
+                                    if (child.icon) {
+                                        ulHtml += '<i class="iconfont ' + child.icon + '"></i>';
+                                    } else {
+                                        //没有设置图标的话，就给默认图标
+                                        ulHtml += '<i class="iconfont layui-extend-jewelry"></i>';
+                                    }
+                                    ulHtml += '<cite style="margin-left: 8px;">' + child.title + '</cite></a></dd>';
+                                }
+
+                            });
+                            ulHtml += "</dl>"
+                        }
+                        ulHtml += '</li>'
+                    });
+                }
+                ulHtml += '</ul>';
+                $(".navBar").html(ulHtml);
+                element.init();  //初始化页面元素
+            } else {
+                $("#navBarId").empty();
+            }
+            top.layer.closeAll();
+        }, "GET", false);
+
+        $(document).on('click', '.menuNvaBar', function () {
+            let dataid = $(this);
+            if ($(".layui-tab-title li[lay-id]").length <= 0) {
+                active.tabAdd(dataid.attr("data-url"), dataid.attr("data-id"), dataid.attr("data-title"));
+            } else {
+                let isData = false;
+                $.each($(".layui-tab-title li[lay-id]"), function () {
+                    if ($(this).attr("lay-id") == dataid.attr("data-id")) {
+                        isData = true;
+                    }
+                })
+                if (isData == false) {
+                    active.tabAdd(dataid.attr("data-url"), dataid.attr("data-id"), dataid.attr("data-title"));
+                }
+            }
+            active.tabChange(dataid.attr("data-id"));
+        });
+
+        //退出登录
+        $("#logout").click(function () {
+            logoutDialog();
+        });
+
+        //查看系统消息
+        $("#system_msg").click(function () {
+            //查询当前用户的所有消息记录
+            CoreUtil.sendAjax("/sys/message/query", null, function (res) {
+                let htmlMsg = '';
+                let resData = res.data;
+                let reloadFlag = false;//是否刷新页面标识
+                if (resData != null && resData.length > 0) {
+                    for (let i = 0; i < resData.length; i++) {
+                        const msg = resData[i];
+                        htmlMsg += '<li class="layui-timeline-item"><i class="layui-icon layui-timeline-axis"></i><div class="layui-timeline-content layui-text">';
+                        //消息状态（0：未读；1：已读；）
+                        if (msg.readStatus == 0) {
+                            reloadFlag = true;
+                            htmlMsg += '<h3 class="layui-timeline-title">' + msg.msgTitle + '<span style="font-size:12px;">(' + msg.createTime + ')<span style="margin-left: 20px;">来自[' + msg.createUserName + ']</span><span style="margin-left: 20px;" class="layui-badge">未读</span></span></h3><ul><li>' + msg.msgContent + '</li></ul></div></li>';
+                        } else {
+                            htmlMsg += '<h3 class="layui-timeline-title">' + msg.msgTitle + '<span style="font-size:12px;">(' + msg.createTime + ')<span style="margin-left: 20px;">来自[' + msg.createUserName + ']</span><span style="margin-left: 20px;" class="layui-badge layui-bg-green">已读</span></span></h3><ul><li>' + msg.msgContent + '</li></ul></div></li>';
+                        }
+                    }
+                    $("#systemMsgShow").html(htmlMsg);
+                    layer.open({
+                        //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                        type: 1,
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: "系统消息",
+                        area: ['80%', '90%'],
+                        content: $("#systemMsg"), //引用的弹出层的页面层的方式加载修改界面表单
+                        cancel: function (index, layero) {
+                            if (unReadMessageCount > 0) {
+                                //调用接口将当前用户的所有系统消息置为已读
+                                CoreUtil.sendAjax("/sys/message/hasReadMsg", null, function (res) {
+                                    if (res.code == 0) {
+                                        layer.close(index);//关闭当前层
+                                        if (reloadFlag) {
+                                            window.location.reload();
+                                        }
+                                    } else {
+                                        layer.msg("发生错误！");
+                                    }
+                                }, "POST", false);
+                            }
+                        }
+                    });
+                }
+            }, "GET", false);
+        });
+
+    });
+
+    //联系我们
+    function linkUs(){
+        layer.open({
+            //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+            type: 1,
+            resize: false, //是否允许拉伸
+            maxmin: false, //最大最小化
+            title: "感谢有你",
+            area: ['50%', '100%'],
+            content: $("#linkUsId") //引用的弹出层的页面层的方式加载修改界面表单
+        });
+    }
+
+    //退出系统时的确认框
+    let logoutDialog = function () {
+        layer.open({
+            content: '确定要退出登录么？',
+            yes: function (index, layero) {
+                layer.open({
+                    content: '真到了要说再见的时候吗？',
+                    yes: function (index, layero) {
+                        layer.open({
+                            content: '愿一切安好，期待你下次到来，再见！',
+                            yes: function (index, layero) {
+                                layer.close(index); //如果设定了yes回调，需进行手工关闭
+                                CoreUtil.sendAjax("/sys/user/logout", null, function (res) {
+                                    top.window.location.href = "/index/login";
+                                }, "GET", true);
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    };
+
+    //触发事件
+    let active = {
+        tabAdd: function (url, id, title) {
+            if (url != "" && url != null && url != undefined) {
+                element.tabAdd('tab', {
+                    title: title
+                    , content: '<iframe data-frameid="' + id + '" frameborder="0" name="content" width="100%" src="' + url + '"></iframe>'
+                    , id: id
+                })
+            }
+            FrameWH();//计算框架高度
+        },
+        tabChange: function (id) {
+            //切换到指定Tab项
+            element.tabChange('tab', id); //切换到：用户管理
+            $("iframe[data-frameid='" + id + "']").attr("src", $("iframe[data-frameid='" + id + "']").attr("src"))//切换后刷新框架
+        },
+        tabDelete: function (id) {
+            element.tabDelete("tab", id);//删除
+        }
+    };
+
+    function hideLeftMenu(){
+        // console.log("左侧菜单控制");
+        if($("#mainmenu").is(':hidden')){
+            //true为隐藏，false为显示
+            //显示左侧菜单
+            $("#mainmenu").show();
+            $("#layui-body-id").css("position",function(){return "fixed";});
+            $("#menuImgId").attr("src", "/images/wjb/menu_open.png");
+        }else{
+            //隐藏左侧菜单
+            $("#mainmenu").hide();
+            $("#layui-body-id").css("position",function(){return "inherit";});
+            $("#menuImgId").attr("src", "/images/wjb/menu_close.png");
+        }
+    }
+
+    function FrameWH() {
+        let h = $(window).height() - 41 - 10 - 35 - 10 - 44 - 10;
+        $("iframe").css("height", h + "px");
+    };
+
+    let websocket = null;
+    let userId = '';
+    let webSocketIp = CoreUtil.getSystemBaseIP();
+
+    //获取系统参数
+    CoreUtil.sendAjax("/config/queryByKey/sys_name", null, function (res) {
+        // console.log(res);
+        if(res != null && res.data != null){
+            $("#sysNameId").html(res.data.sysValue);
+            $("#sysNameId2").html(res.data.sysValue);
+        }
+    }, "GET", false, function (res) {
+        layer.msg(res.msg);
+    });
+
+    //获取当前登录者userId
+    CoreUtil.sendAjax("/sys/home", null, function (res) {
+        $("#menuImgId").attr("src", "/images/wjb/menu_open.png");
+        userId = res.data.userInfo.id;
+
+        //判断当前浏览器是否支持WebSocket
+        if ('WebSocket' in window) {
+            onLineWebSocket = new WebSocket("ws://" + webSocketIp +　":8000/onLineWebsocket/" + userId);
+        } else {
+            layer.msg("当前浏览器不支持WebSocket");
+        }
+
+        //连接发生错误的回调方法
+        onLineWebSocket.onerror = function () {
+            layer.msg("WebSocket连接发生错误-无法统计在线人数");
+        };
+
+        //连接成功建立的回调方法
+        onLineWebSocket.onopen = function (event) {
+            console.log("webSocket连接成功-用于统计在线人数");
+        };
+
+        //接收到消息的回调方法
+        onLineWebSocket.onmessage = function (event) {
+            setMessageInnerHTML(event.data);
+        };
+
+        //连接关闭的回调方法
+        onLineWebSocket.onclose = function () {
+            closeWebSocket();
+        };
+
+        //监听窗口关闭事件，当窗口关闭时，主动去关闭websocket连接，防止连接还没断开就关闭窗口，server端会抛异常。
+        window.onbeforeunload = function () {
+            closeWebSocket();
+        };
+
+        //将消息显示在网页上
+        function setMessageInnerHTML(onLineNum) {
+            let strs = new Array(); //定义一数组
+            strs = onLineNum.split("###"); //字符分割
+            $("#onLineWebSocket").html("在线人数：" + strs[0]);
+            let msg = "";
+            let icon = 5;
+            if ("up" == strs[2]) {
+                msg = "用户[ " + strs[1] + " ]登录系统了！";
+                icon = 6;
+            } else if ("down" == strs[2]) {
+                msg = "用户[ " + strs[1] + " ]退出系统了！";
+            }
+            layer.msg(msg, {
+                icon: icon,  //1:对勾;2:叉叉;3:问号;4:一把锁;5:不开心表情;6:开心表情;7:感叹号;
+                time: 2000,  //如果不配置，默认是3秒关闭
+                shade: 0,
+                offset: "rb"//右下角
+            });
+        }
+
+        //关闭连接
+        function closeWebSocket() {
+            onLineWebSocket.close();
+        }
+
+        //判断当前浏览器是否支持WebSocket
+        if ('WebSocket' in window) {
+            // 连接服务端
+            websocket = new WebSocket("ws://" + webSocketIp + ":8000/noticeWebSocket/" + userId);
+
+            //连接发生错误的回调方法
+            websocket.onerror = function () {
+                console.log("webSocket连接发生错误-用于系统广播消息")
+            };
+
+            //连接成功建立的回调方法
+            websocket.onopen = function () {
+                console.log("webSocket连接成功-用于系统广播消息")
+            };
+
+            //接收到消息的回调方法，此处添加处理接收消息方法，当前是将接收到的信息显示在网页上
+            websocket.onmessage = function (event) {
+                let msgJsonObject = JSON.parse(event.data.replace(/'/g, '\"'));
+                layer.open({
+                    title: '来自[ ' + msgJsonObject.username + ' ]发来的广播消息',
+                    type: 0,
+                    offset: 'auto',
+                    shade: [0.8, '#393D49'],
+                    anim: 6,
+                    content: "<span style='font-size: 15px;color: #1e9fff;font-weight: bold;'>广播内容：</span>" + msgJsonObject.message + "<br/><span style='font-size: 15px;color: #1e9fff;font-weight: bold;'>广播时间：</span>" + msgJsonObject.date
+                });
+            };
+
+            //连接关闭的回调方法
+            websocket.onclose = function () {
+                console.log("webSocket连接关闭,如需登录请刷新页面。");
+            };
+
+            //监听窗口关闭事件，当窗口关闭时，主动去关闭websocket连接，防止连接还没断开就关闭窗口，server端会抛异常。
+            window.onbeforeunload = function () {
+                websocket.close();
+            };
+        } else {
+            layer.msg("当前浏览器不支持WebSocket");
+        }
+    }, "GET", false, function (res) {
+        console.log("暂无此权限！");
+    });
+
+</script>
+
+</html>

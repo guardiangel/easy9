@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.colin.mapper.yw.JxcInStoreMapper">
+
+  <resultMap id="BaseResultMap" type="org.colin.model.ro.JxcInStore">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="create_user" jdbcType="VARCHAR" property="createUser" />
+    <result column="goods_code" jdbcType="VARCHAR" property="goodsCode" />
+    <result column="in_count" jdbcType="DECIMAL" property="inCount" />
+    <result column="goods_unit" jdbcType="VARCHAR" property="goodsUnit" />
+    <result column="goods_price" jdbcType="DECIMAL" property="goodsPrice" />
+    <result column="goods_total_price" jdbcType="DECIMAL" property="goodsTotalPrice" />
+    <result column="in_person" jdbcType="VARCHAR" property="inPerson" />
+    <result column="in_person_phone" jdbcType="VARCHAR" property="inPersonPhone" />
+    <result column="goods_spec" jdbcType="VARCHAR" property="goodsSpec" />
+    <result column="in_desc" jdbcType="VARCHAR" property="inDesc" />
+    <result column="wh_code" jdbcType="VARCHAR" property="whCode" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, create_time, create_user, goods_code, in_count, goods_unit, goods_price, goods_total_price, 
+    in_person, in_person_phone, goods_spec, in_desc, wh_code
+  </sql>
+  <!--查询所有入库记录-->
+  <select id="selectAll" parameterType="org.colin.model.vo.req.JxcInStoreReqVo" resultType="org.colin.model.vo.resp.JxcInStoreRespVO">
+        select
+        t1.id, t1.create_time, t1.create_user, t1.goods_code, t1.in_count, t1.goods_unit, t1.goods_price,
+        t1.goods_total_price, t1.in_person, t1.in_person_phone, t1.goods_spec, t1.in_desc, t1.wh_code,
+        t2.real_name as createUserName, t3.goods_name, t3.goods_model, t3.goods_type, t4.dic_value as goodsTypeDesc, t5.wh_name as whCodeDesc
+        from jxc_in_store t1
+        left join jxc_warehouse t5 on t1.wh_code = t5.wh_code
+        left join sys_user t2 on t1.create_user = t2.id
+        inner join jxc_goods t3 on t1.goods_code = t3.goods_code
+        left join sys_dic_info t4 on t3.goods_type = t4.dic_code and t4.type_code = 'GOODSTYPE'
+        <where>
+          <if test="goodsType != null and goodsType != '' ">
+            AND t3.goods_type  = #{goodsType}
+          </if>
+          <if test="goodsName != null and goodsName != '' ">
+            AND t3.goods_name LIKE concat('%',#{goodsName},'%')
+          </if>
+          <if test="goodsCode != null and goodsCode != '' ">
+            AND t1.goods_code LIKE concat('%',#{goodsCode},'%')
+          </if>
+          <if test="goodsModel != null and goodsModel != '' ">
+            AND t3.goods_model LIKE concat('%',#{goodsModel},'%')
+          </if>
+          <if test="inPerson != null and inPerson != '' ">
+            AND t1.in_person LIKE concat('%',#{inPerson},'%')
+          </if>
+          <if test="whCode != null and whCode != '' ">
+            AND t1.wh_code LIKE concat('%',#{whCode},'%')
+          </if>
+        </where>
+        order by t1.create_time desc
+  </select>
+  <select id="selectByPrimaryKey" parameterType="org.colin.model.vo.req.JxcInStoreReqVo" resultMap="BaseResultMap">
+    select
+    t1.id, t1.create_time, t1.create_user, t1.goods_code, t1.in_count, t1.goods_unit, t1.goods_price,
+    t1.goods_total_price, t1.in_person, t1.in_person_phone, t1.goods_spec, t1.in_desc, t1.wh_code,
+    t2.real_name as createUserName, t3.goods_name, t3.goods_model, t3.goods_type, t4.dic_value as goodsTypeDesc, t5.wh_name as whCodeDesc
+    from jxc_in_store t1
+    left join jxc_warehouse t5 on t1.wh_code = t5.wh_code
+    left join sys_user t2 on t1.create_user = t2.id
+    inner join jxc_goods t3 on t1.goods_code = t3.goods_code
+    left join sys_dic_info t4 on t3.goods_type = t4.dic_code and t4.type_code = 'GOODSTYPE'
+    where t1.id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from jxc_in_store
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="org.colin.model.ro.JxcInStore">
+    insert into jxc_in_store (id, create_time, create_user, 
+      goods_code, in_count, goods_unit, 
+      goods_price, goods_total_price, in_person, 
+      in_person_phone, goods_spec, in_desc, wh_code
+      )
+    values (#{id,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{createUser,jdbcType=VARCHAR}, 
+      #{goodsCode,jdbcType=VARCHAR}, #{inCount,jdbcType=DECIMAL}, #{goodsUnit,jdbcType=VARCHAR}, 
+      #{goodsPrice,jdbcType=DECIMAL}, #{goodsTotalPrice,jdbcType=DECIMAL}, #{inPerson,jdbcType=VARCHAR}, 
+      #{inPersonPhone,jdbcType=VARCHAR}, #{goodsSpec,jdbcType=VARCHAR}, #{inDesc,jdbcType=VARCHAR}, #{whCode,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="org.colin.model.ro.JxcInStore">
+    insert into jxc_in_store
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="createUser != null">
+        create_user,
+      </if>
+      <if test="goodsCode != null">
+        goods_code,
+      </if>
+      <if test="inCount != null">
+        in_count,
+      </if>
+      <if test="goodsUnit != null">
+        goods_unit,
+      </if>
+      <if test="goodsPrice != null">
+        goods_price,
+      </if>
+      <if test="goodsTotalPrice != null">
+        goods_total_price,
+      </if>
+      <if test="inPerson != null">
+        in_person,
+      </if>
+      <if test="inPersonPhone != null">
+        in_person_phone,
+      </if>
+      <if test="goodsSpec != null">
+        goods_spec,
+      </if>
+      <if test="inDesc != null">
+        in_desc,
+      </if>
+      <if test="whCode != null">
+        wh_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createUser != null">
+        #{createUser,jdbcType=VARCHAR},
+      </if>
+      <if test="goodsCode != null">
+        #{goodsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="inCount != null">
+        #{inCount,jdbcType=DECIMAL},
+      </if>
+      <if test="goodsUnit != null">
+        #{goodsUnit,jdbcType=VARCHAR},
+      </if>
+      <if test="goodsPrice != null">
+        #{goodsPrice,jdbcType=DECIMAL},
+      </if>
+      <if test="goodsTotalPrice != null">
+        #{goodsTotalPrice,jdbcType=DECIMAL},
+      </if>
+      <if test="inPerson != null">
+        #{inPerson,jdbcType=VARCHAR},
+      </if>
+      <if test="inPersonPhone != null">
+        #{inPersonPhone,jdbcType=VARCHAR},
+      </if>
+      <if test="goodsSpec != null">
+        #{goodsSpec,jdbcType=VARCHAR},
+      </if>
+      <if test="inDesc != null">
+        #{inDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="whCode != null">
+        #{whCode,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="org.colin.model.ro.JxcInStore">
+    update jxc_in_store
+    <set>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createUser != null">
+        create_user = #{createUser,jdbcType=VARCHAR},
+      </if>
+      <if test="goodsCode != null">
+        goods_code = #{goodsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="inCount != null">
+        in_count = #{inCount,jdbcType=DECIMAL},
+      </if>
+      <if test="goodsUnit != null">
+        goods_unit = #{goodsUnit,jdbcType=VARCHAR},
+      </if>
+      <if test="goodsPrice != null">
+        goods_price = #{goodsPrice,jdbcType=DECIMAL},
+      </if>
+      <if test="goodsTotalPrice != null">
+        goods_total_price = #{goodsTotalPrice,jdbcType=DECIMAL},
+      </if>
+      <if test="inPerson != null">
+        in_person = #{inPerson,jdbcType=VARCHAR},
+      </if>
+      <if test="inPersonPhone != null">
+        in_person_phone = #{inPersonPhone,jdbcType=VARCHAR},
+      </if>
+      <if test="goodsSpec != null">
+        goods_spec = #{goodsSpec,jdbcType=VARCHAR},
+      </if>
+      <if test="inDesc != null">
+        in_desc = #{inDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="whCode != null">
+        wh_code = #{whCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.colin.model.ro.JxcInStore">
+    update jxc_in_store
+    set create_time = #{createTime,jdbcType=TIMESTAMP},
+      create_user = #{createUser,jdbcType=VARCHAR},
+      goods_code = #{goodsCode,jdbcType=VARCHAR},
+      in_count = #{inCount,jdbcType=DECIMAL},
+      goods_unit = #{goodsUnit,jdbcType=VARCHAR},
+      goods_price = #{goodsPrice,jdbcType=DECIMAL},
+      goods_total_price = #{goodsTotalPrice,jdbcType=DECIMAL},
+      in_person = #{inPerson,jdbcType=VARCHAR},
+      in_person_phone = #{inPersonPhone,jdbcType=VARCHAR},
+      goods_spec = #{goodsSpec,jdbcType=VARCHAR},
+      in_desc = #{inDesc,jdbcType=VARCHAR},
+      wh_code = #{whCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

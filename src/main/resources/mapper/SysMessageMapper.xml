@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.colin.mapper.SysMessageMapper">
+
+    <resultMap id="BaseResultMap" type="org.colin.model.entity.SysMessage">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="create_user_id" jdbcType="VARCHAR" property="createUserId"/>
+        <result column="receive_user_id" jdbcType="VARCHAR" property="receiveUserId"/>
+        <result column="msg_content" jdbcType="VARCHAR" property="msgContent"/>
+        <result column="msg_title" jdbcType="VARCHAR" property="msgTitle"/>
+        <result column="read_status" jdbcType="INTEGER" property="readStatus"/>
+        <result column="target" jdbcType="VARCHAR" property="target"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, create_time, create_user_id, receive_user_id, msg_content, msg_title, read_status, target
+    </sql>
+
+    <!--将当前用户的所有系统消息置为某种状态(状态（0：未读；1：已读；）)-->
+    <update id="hasReadMsg">
+        update sys_message set read_status = #{status}
+        where receive_user_id = #{userId} and target = #{target}
+    </update>
+
+    <!--将指定消息置为指定状态-->
+    <update id="setMessageStatus">
+        update sys_message set read_status = #{status}
+        where id = #{messageId}
+    </update>
+
+    <!--查询当前用户的消息信息(状态（0：未读；1：已读；2：全部；）)-->
+    <select id="getUserMsg" resultType="org.colin.model.vo.resp.MessageVO">
+        select
+        t1.id, t1.create_time, t1.create_user_id, t1.receive_user_id, t1.msg_content, t1.msg_title, t1.read_status, t2.real_name as createUserName
+        from sys_message t1
+        left join sys_user t2 on t1.create_user_id = t2.id
+        where t1.receive_user_id = #{userId} and t1.target = #{target}
+        <if test="status != 2">
+            and t1.read_status = #{status}
+        </if>
+        ORDER BY t1.create_time desc LIMIT 0, 100
+    </select>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_message
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+      delete from sys_message
+      where id = #{id,jdbcType=VARCHAR}
+    </delete>
+
+    <insert id="insertForeach" parameterType="java.util.List">
+        insert into sys_message (id, create_time, create_user_id, receive_user_id, msg_content, msg_title, read_status, target)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.id},
+            #{item.createTime},
+            #{item.createUserId},
+            #{item.receiveUserId},
+            #{item.msgContent},
+            #{item.msgTitle},
+            #{item.readStatus},
+            #{item.target}
+            )
+        </foreach>
+    </insert>
+    <insert id="insertSelective" parameterType="org.colin.model.entity.SysMessage">
+        insert into sys_message
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="createUserId != null">
+                create_user_id,
+            </if>
+            <if test="receiveUserId != null">
+                receive_user_id,
+            </if>
+            <if test="msgContent != null">
+                msg_content,
+            </if>
+            <if test="msgTitle != null">
+                msg_title,
+            </if>
+            <if test="readStatus != null">
+                read_status,
+            </if>
+            <if test="target != null">
+                target,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="createUserId != null">
+                #{createUserId,jdbcType=VARCHAR},
+            </if>
+            <if test="receiveUserId != null">
+                #{receiveUserId,jdbcType=VARCHAR},
+            </if>
+            <if test="msgContent != null">
+                #{msgContent,jdbcType=VARCHAR},
+            </if>
+            <if test="msgTitle != null">
+                #{msgTitle,jdbcType=VARCHAR},
+            </if>
+            <if test="readStatus != null">
+                #{readStatus,jdbcType=INTEGER},
+            </if>
+            <if test="target != null">
+                #{target,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="org.colin.model.entity.SysMessage">
+        update sys_message
+        <set>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="createUserId != null">
+                create_user_id = #{createUserId,jdbcType=VARCHAR},
+            </if>
+            <if test="receiveUserId != null">
+                receive_user_id = #{receiveUserId,jdbcType=VARCHAR},
+            </if>
+            <if test="msgContent != null">
+                msg_content = #{msgContent,jdbcType=VARCHAR},
+            </if>
+            <if test="msgTitle != null">
+                msg_title = #{msgTitle,jdbcType=VARCHAR},
+            </if>
+            <if test="readStatus != null">
+                read_status = #{readStatus,jdbcType=INTEGER},
+            </if>
+            <if test="target != null">
+                target = #{target,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="org.colin.model.entity.SysMessage">
+      update sys_message
+      set create_time = #{createTime,jdbcType=TIMESTAMP},
+        create_user_id = #{createUserId,jdbcType=VARCHAR},
+        receive_user_id = #{receiveUserId,jdbcType=VARCHAR},
+        msg_content = #{msgContent,jdbcType=VARCHAR},
+        msg_title = #{msgTitle,jdbcType=VARCHAR},
+        read_status = #{readStatus,jdbcType=INTEGER},
+        target = #{target,jdbcType=VARCHAR}
+      where id = #{id,jdbcType=VARCHAR}
+    </update>
+
+    <!--查询所有-->
+    <select id="selectAll" resultType="org.colin.model.vo.resp.MessageVO">
+        select t1.id, t1.create_time, t1.create_user_id, t1.receive_user_id, t1.msg_content, t1.msg_title, t1.read_status, t1.target, t2.real_name as createUserName, t3.real_name as receiveUserName
+        from sys_message t1 LEFT JOIN sys_user t2 on t1.create_user_id = t2.id LEFT JOIN sys_user t3 on t1.receive_user_id = t3.id
+        <where>
+            <if test="msgContent != null and msgContent != ''">
+                AND t1.msg_content LIKE concat('%',#{msgContent},'%')
+            </if>
+            <if test="msgTitle != null and msgTitle != ''">
+                AND t1.msg_title LIKE concat('%',#{msgTitle},'%')
+            </if>
+            <if test="startTime != null and startTime != ''">
+                AND t1.create_time &gt;= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND t1.create_time &lt;= #{endTime}
+            </if>
+        </where>
+        order by t1.create_time desc
+    </select>
+
+    <!--批量删除系统消息-->
+    <delete id="batchDeletedMessage">
+        delete
+        from sys_message
+        where id in
+        <foreach item="item" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+</mapper>

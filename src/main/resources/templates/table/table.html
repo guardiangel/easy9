@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro"
+>
+<head>
+    <meta charset="UTF-8">
+    <title>数据库表结构信息页面</title>
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+    <!--引入我们在https://www.iconfont.cn平台生成的图标样式库-->
+    <link rel="stylesheet" href="/layui/css/modules/layui-icon-extend/iconfont.css" media="all">
+    <style>
+        .layui-layer-content {
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+<table class="layui-hide" id="obj_table" lay-filter="obj_table"></table>
+<!--查看表结构DIV-->
+<div class="layui-row" id="objDeatil" style="display:none;">
+    <table class="layui-hide" id="objTableDetail" lay-filter="objTableDetail"></table>
+</div>
+</body>
+<script type="text/html" id="tool">
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="detail" shiro:hasPermission="sys:queryTableByName">详情</a>
+</script>
+<script src="/layui/layui.all.js"></script>
+<script src="/js/core.util.js"></script>
+<script>
+    let table = layui.table;
+    let layer = layui.layer;
+    let $ = jQuery = layui.jquery;
+    layui.use(['table', 'layer'], function () {
+        CoreUtil.sendAjax("/sys/queryAllTable", null, function (res) {
+            //初始化渲染数据
+            if (res.data != null) {
+                loadTable(res.data);
+            }
+        }, "GET", false, function (res) {
+            layer.msg("抱歉！您暂无此权限");
+        });
+
+        //渲染table
+        let loadTable = function (data) {
+            //展示已知数据
+            table.render({
+                elem: '#obj_table'
+                , cols: [
+                    [
+                        {type: 'xuhao', fixed: 'left', title: '序号', width: 50, type: 'numbers'},
+                        {field: 'tableSchema', title: 'tableSchema', width: 180},
+                        {field: 'tableName', title: 'tableName', width: 260},
+                        {field: 'tableRows', title: 'tableRows', width: 100},
+                        {field: 'createTime', title: 'createTime', width: 200, sort: true},
+                        {field: 'tableComment', title: 'tableComment', width: 260},
+                        {width: 150, toolbar: "#tool", title: '操作'}
+                    ]
+                ]
+                , data: data
+                , even: true
+                , limit: data.length
+            });
+        };
+
+        //监听行单击/双击事件（单击事件为：row；双击事件为：rowDouble）
+        table.on('rowDouble(obj_table)', function (obj) {
+            let data = obj.data;
+            CoreUtil.sendAjax("/sys/queryTableByName/" + data.tableName, null, function (res) {
+                console.log(res);
+                //初始化渲染数据
+                if (res.data != null) {
+                    loadTableDetail(res.data);
+                }
+            }, "GET", false, function (res) {
+                layer.msg("抱歉！您暂无此权限");
+            });
+            layer.open({
+                //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                type: 1,
+                resize: false, //是否允许拉伸
+                maxmin: false, //最大最小化
+                title: data.tableName + " 表结构",
+                area: ['90%', '70%'],
+                content: $("#objDeatil") //引用的弹出层的页面层的方式加载修改界面表单
+            });
+        });
+
+        //显示表结构详情
+        let loadTableDetail = function (data) {
+            table.render({
+                elem: '#objTableDetail'
+                , cols: [
+                    [
+                        {type: 'xuhao', fixed: 'left', title: '序号', width: 50, type: 'numbers'},
+                        {field: 'tableName', title: '表名', width: 180},
+                        {field: 'columnName', title: '列名', width: 260},
+                        {field: 'columnType', title: '数据类型', width: 220},
+                        {field: 'characterMaximumLength', title: '数据长度', width: 100},
+                        {field: 'isNullable', title: '是否允许为空', width: 200, sort: false},
+                        {field: 'columnComment', title: '列注释', width: 280}
+                    ]
+                ]
+                , data: data
+                , even: true
+                , limit: data.length
+            });
+        };
+
+        //操作工具栏事件
+        table.on('tool(obj_table)', function (obj) {
+            let data = obj.data;
+            switch (obj.event) {
+                case 'detail':
+                    CoreUtil.sendAjax("/sys/queryTableByName/" + data.tableName, null, function (res) {
+                        console.log(res);
+                        //初始化渲染数据
+                        if (res.data != null) {
+                            loadTableDetail(res.data);
+                        }
+                    }, "GET", false, function (res) {
+                        layer.msg("抱歉！您暂无此权限");
+                    });
+                    layer.open({
+                        //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                        type: 1,
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: data.tableName + " 表结构",
+                        area: ['90%', '70%'],
+                        content: $("#objDeatil") //引用的弹出层的页面层的方式加载修改界面表单
+                    });
+                    break;
+            }
+        });
+
+    });
+</script>
+</html>

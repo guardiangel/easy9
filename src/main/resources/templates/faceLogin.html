@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en"
+>
+<head>
+    <meta charset="UTF-8">
+    <meta name='viewport' content='width=device-width initial-scale=1'>
+    <title>Easy9云平台</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" type="image/x-icon" href="/images/easy9.ico"/>
+</head>
+<style type="text/css">
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        height: 100vh;
+        background-position: center;
+        overflow: hidden;
+    }
+
+    h1 {
+        color: #fff;
+        text-align: center;
+        font-weight: 100;
+        margin-top: 40px;
+    }
+
+    #media {
+        width: 280px;
+        height: 250px;
+        margin: 10px auto 0;
+        border-radius: 30px;
+        overflow: hidden;
+        opacity: 0.7px;
+    }
+
+    #video {
+    }
+
+    #canvas {
+        display: none;
+    }
+</style>
+
+<style>
+    body {
+        height: 100%;
+        background: #000000;
+        overflow: hidden;
+    }
+
+    canvas {
+        z-index: -1;
+        position: absolute;
+    }
+</style>
+<body>
+<!-- 人脸识别 form -->
+<div id="divs2">
+    <dl class="admin_login">
+        <dt>
+            <strong>人脸识别登录</strong>
+        </dt>
+        <div id="media">
+            <video id="video" width="380" height="300" autoplay></video>
+            <canvas id="canvas" width="400" height="300"></canvas>
+        </div>
+        <div style="margin-top: 10px;text-align: center;">
+            <button type="button" class="layui-btn" id="faceLogin">立即登录</button>
+            <button type="button" class="layui-btn" id="pwdLogin">账号登录</button>
+        </div>
+    </dl>
+    <script src="/layui/layui.all.js"></script>
+    <script src="/js/core.util.js"></script>
+    <script type="text/javascript">
+        let $ = jQuery = layui.jquery;
+
+        //let 是定义变量
+        let video = document.getElementById("video"); //获取video标签
+        let context = canvas.getContext("2d");
+        let con = {
+            audio : false,
+            video : {
+                width : 1980,
+                height : 1024,
+            }
+        };
+        console.log(context);
+
+        //导航 获取用户媒体对象
+        navigator.mediaDevices.getUserMedia(con).then(function(stream) {
+            console.log("1111111111");
+            console.log(stream);
+            if(stream != null && stream.active == true){
+                video.srcObject = stream;
+                video.play();
+            }else{
+                layer.msg("您的设备无法采集图像信息");
+            }
+        });
+
+        //人脸登录
+        $("#faceLogin").click(function(){
+            query();
+        });
+
+        //密码登录
+        $("#pwdLogin").click(function(){
+            window.location.href = "/index/login";
+        });
+
+        function query() {
+            //把流媒体数据画到convas画布上去
+            context.drawImage(video, 0, 0, 400, 300);
+            let base = getBase64();
+            let loginParam = {
+                code: base
+            };
+            //上传截图的图片
+            CoreUtil.sendAjax("/sys/user/faceLogin", JSON.stringify(loginParam), function (res) {
+                layer.msg(res.msg);
+                if(res != null && res.code == 0){
+                    CoreUtil.setData("access_token", res.data.accessToken);
+                    CoreUtil.setData("refresh_token", res.data.refreshToken);
+                    window.location.href = "/index/home";
+                }else{
+                    layer.msg(res.msg);
+                }
+            }, "POST", false, function (res) {
+                layer.msg(res.msg);
+            });
+
+        }
+        function getBase64() {
+            let imgSrc = document.getElementById("canvas").toDataURL("image/png");
+            return imgSrc.split("base64,")[1];
+        }
+    </script>
+</div>
+</body>
+</html>

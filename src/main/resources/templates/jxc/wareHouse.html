@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro"
+>
+<head>
+    <meta charset="UTF-8">
+    <title>进销存管理-仓库管理页面</title>
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+    <!--引入我们在https://www.iconfont.cn平台生成的图标样式库-->
+    <link rel="stylesheet" href="/layui/css/modules/layui-icon-extend/iconfont.css" media="all">
+    <style>
+        .layui-form-label.layui-required:after{
+            content:"*";
+            color:red;
+            position: absolute;
+            top:9px;
+            margin-left: 3px;
+        }
+
+        .layui-input-block{
+            margin-left: 240px;
+        }
+        .layui-form-label{
+            width: 180px;
+        }
+        .layui-input, .layui-textarea{
+            width: 360px;
+        }
+
+    </style>
+</head>
+<body>
+<!--新增/编辑-->
+<div class="layui-row operation_div" id="addUpdateDivId" style="display:none;">
+    <form class="layui-form " action="" lay-filter="addUpdateFilter" id="addUpdateFilter" style="width: 600px;margin-top: 10px;margin-left: 60px;">
+        <div class="layui-form-item">
+            <label class="layui-form-label layui-required">仓库名称</label>
+            <div class="layui-input-block">
+                <input type="hidden" name="id" id="id">
+                <input type="text" name="whName" id="whName" autocomplete="off" class="layui-input" lay-verify="required">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label layui-required">仓库联系人</label>
+            <div class="layui-input-block">
+                <input type="text" name="whLinkUser" id="whLinkUser" autocomplete="off" class="layui-input" lay-verify="required">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label layui-required">仓库联系电话</label>
+            <div class="layui-input-block">
+                <input type="text" name="whLinkPhone" id="whLinkPhone" autocomplete="off" class="layui-input" lay-verify="required">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">仓库地址</label>
+            <div class="layui-input-block">
+                <input type="text" name="whAddress" id="whAddress" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">仓库邮编</label>
+            <div class="layui-input-block">
+                <input type="text" name="whPost" id="whPost" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">仓库建成时间</label>
+            <div class="layui-input-block">
+                <input type="text" class="layui-input my_date_class_name" id="whCreateTime" name="whCreateTime" >
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">仓库投入使用时间</label>
+            <div class="layui-input-block">
+                <input type="text" class="layui-input my_date_class_name" id="whUseTime" name="whUseTime" >
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">仓库简介</label>
+            <div class="layui-input-block">
+                <textarea name="whBrief" class="layui-textarea"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button type="submit" class="layui-btn" lay-submit="" lay-filter="edit-user-submit">保存</button>
+                <button class="layui-btn layui-btn-primary" id="btn_cancel">返回</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<table class="layui-hide" id="log_table" lay-filter="log_table"></table>
+<div id="laypage" class="layui-laypage-btn"></div>
+
+</body>
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-group">
+        <button shiro:hasPermission="jxc:wh:insert" type="button" class="layui-btn" lay-event="addObject">
+            <i class="layui-icon">&#xe608;</i> 新增仓库
+        </button>
+    </div>
+</script>
+<script type="text/html" id="tool">
+    <a class="layui-btn layui-btn-xs" lay-event="edit" shiro:hasPermission="jxc:wh:update">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" shiro:hasPermission="jxc:wh:delete">删除</a>
+</script>
+<script src="/layui/layui.all.js"></script>
+<script src="/js/core.util.js"></script>
+<script>
+    let table = layui.table;
+    let laypage = layui.laypage;
+    let form = layui.form;
+    let layer = layui.layer;
+    let $ = jQuery = layui.jquery;
+    let laydate = layui.laydate;
+
+    layui.use(['table', 'laypage', 'layer', 'laydate'], function () {
+        let searchParam = {
+            startTime: null,
+            endTime: null,
+            pageNum: 1,
+            pageSize: 10
+        };
+
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#whCreateTime'
+            , type: 'datetime'
+            , trigger: 'click'
+        });
+        laydate.render({
+            elem: '#whUseTime'
+            , type: 'datetime'
+            , trigger: 'click'
+        });
+
+        CoreUtil.sendAjax("/jxc/wh/pageList", JSON.stringify(searchParam), function (res) {
+            //初始化分页器
+            laypageTable(res.data.totalRows, searchParam.pageNum);
+            //初始化渲染数据
+            if (res.data.list != null) {
+                loadTable(res.data.list);
+            }
+        }, "POST", false, function (res) {
+            layer.msg(res.msg);
+            let noAuthorityData = [];
+            loadTable(noAuthorityData);
+        });
+
+        //监听提交-编辑/新增用户信息弹框
+        form.on('submit(edit-user-submit)', function (data) {
+            if (data.field.id === undefined || data.field.id === null || data.field.id === "") {
+                CoreUtil.sendAjax("/jxc/wh/insert", JSON.stringify(data.field), function (res) {
+                    layer.closeAll(); //疯狂模式，关闭所有层
+                    layer.msg(res.msg);
+                    $(".layui-laypage-btn").click();
+                }, "POST", false, function (res) {
+                    layer.msg(res.msg);
+                });
+            } else {
+                CoreUtil.sendAjax("/jxc/wh/update", JSON.stringify(data.field), function (res) {
+                    layer.closeAll(); //疯狂模式，关闭所有层
+                    layer.msg(res.msg);
+                    $(".layui-laypage-btn").click();
+                }, "PUT", false, function (res) {
+                    layer.msg(res.msg);
+                });
+            }
+            return false;
+        });
+
+        //渲染分页插件
+        let laypageTable = function (count, currentPage) {
+            laypage.render({
+                elem: 'laypage'
+                , count: count
+                , limit: searchParam.pageSize
+                , layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip']
+                , curr: location.hash.replace('#!currentPage=', '') //获取起始页
+                , hash: 'currentPage' //自定义hash值
+                , limits: [10, 25, 50, 100, 300, 500, 2000]
+                , jump: function (obj, first) {
+                    if (!first) {
+                        searchParam.pageNum = obj.curr;
+                        searchParam.pageSize = obj.limit;
+                        CoreUtil.sendAjax("/jxc/wh/pageList", JSON.stringify(searchParam), function (res) {
+                            if (res.data.list != null) {
+                                loadTable(res.data.list);
+                                laypageTable(res.data.totalRows, searchParam.pageNum);
+                            }
+                        }, "POST", false, function (res) {
+                            layer.msg(res.msg);
+                            let noAuthorityData = [];
+                            loadTable(noAuthorityData);
+                        });
+                    }
+                }
+            });
+        };
+
+        //渲染table
+        let loadTable = function (data) {
+            //展示已知数据
+            table.render({
+                elem: '#log_table'
+                , cols: [
+                    [
+                        {type: 'checkbox', fixed: 'left'},
+                        {type: 'xuhao', fixed: 'left', title: '序号', width: 50, type: 'numbers'},
+                        {field: 'whCode', title: '仓库编号', width: 120},
+                        {field: 'whName', title: '仓库名称', width: 220},
+                        {field: 'whLinkUser', title: '仓库联系人', width: 120},
+                        {field: 'whLinkPhone', title: '仓库联系电话', width: 140},
+                        {field: 'whAddress', title: '仓库地址', width: 320},
+                        {field: 'whPost', title: '仓库邮编', width: 90},
+                        {field: 'whBrief', title: '仓库简介', width: 220},
+                        {field: 'whCreateTime', title: '仓库建成时间', sort: true, width: 170},
+                        {field: 'whUseTime', title: '仓库投入使用时间', sort: true, width: 170},
+                        {field: 'createTime', title: '创建时间', sort: true, width: 170},
+                        {field: 'createUserName', title: '创建人', sort: false, width: 100},
+                        {field: 'updateTime', title: '更新时间', sort: true, width: 170},
+                        {field: 'updateUserName', title: '更新人', sort: false, width: 100},
+                        {width: 150, toolbar: "#tool", title: '操作', fixed: 'right'}
+                    ]
+                ]
+                , data: data
+                , even: true
+                , limit: data.length
+                , toolbar: '#toolbar'
+            });
+        };
+
+        //监听操作工具栏事件
+        table.on('tool(log_table)', function (obj) {
+            let data = obj.data;
+            switch (obj.event) {
+                case 'edit':
+                    layer.open({
+                        //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                        type: 1,
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: "更新仓库信息",
+                        area: ['90%', '90%'],
+                        content: $("#addUpdateDivId") //引用的弹出层的页面层的方式加载修改界面表单
+                    });
+                    //回显数据，填充表格
+                    form.val("addUpdateFilter", {
+                        "whName": data.whName
+                        , "id": data.id
+                        , "whAddress": data.whAddress
+                        , "whPost": data.whPost
+                        , "whLinkUser": data.whLinkUser
+                        , "whLinkPhone": data.whLinkPhone
+                        , "whBrief": data.whBrief
+                        , "whCreateTime": data.whCreateTime
+                        , "whUseTime": data.whUseTime
+                    });
+                    form.render();
+                    break;
+                case 'del':
+                    tipDialog(data.id);
+                    break;
+            }
+        });
+
+        //监听表格头部工具栏事件
+        table.on('toolbar(log_table)', function (obj) {
+            switch (obj.event) {
+                case 'addObject':
+                    //重置表单数据
+                    $("#addUpdateFilter")[0].reset();
+                    form.render();
+                    $('#id').val('');
+                    //打开弹框
+                    layer.open({
+                        //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                        type: 1,
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: "新增仓库信息",
+                        area: ['90%', '90%'],
+                        content: $("#addUpdateDivId") //引用的弹出层的页面层的方式加载修改界面表单
+                    });
+                    break;
+            }
+        });
+
+        //删除前确认对话框
+        let tipDialog = function (id) {
+            layer.open({
+                content: '确定要删除么',
+                yes: function (index, layero) {
+                    layer.close(index); //如果设定了yes回调，需进行手工关闭
+                    CoreUtil.sendAjax("/jxc/wh/delete/" + id, null, function (res) {
+                        layer.msg(res.msg);
+                        $(".layui-laypage-btn").click();
+                    }, "DELETE", false, function (res) {
+                        layer.msg(res.msg);
+                    });
+                }
+            });
+        }
+    });
+</script>
+</html>

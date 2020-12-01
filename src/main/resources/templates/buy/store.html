@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro"
+>
+<head>
+    <meta charset="UTF-8">
+    <title>商家管理页面</title>
+    <link rel="stylesheet" href="/layui/css/layui.css?v=<%=Math.random()%>" media="all">
+</head>
+<body>
+<div id="searchParam">
+    <form class="layui-form layui-form-pane" action="" autocomplete="off">
+        <div class="layui-form-item" shiro:hasPermission="buy:store:list">
+            <div class="layui-input-inline">
+                <input type="text" id="storeName" name="storeName" class="layui-input" autocomplete="off" placeholder="请输入商家名称">
+            </div>
+            <div class="layui-input-inline">
+                <select name="comm" id="comm" lay-search="">
+                </select>
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" class="layui-input" id="createTime" placeholder="创建时间">
+            </div>
+            <div class="layui-input-inline ">
+                <button class="layui-btn" id="search">查询</button>
+            </div>
+        </div>
+    </form>
+</div>
+<table class="layui-hide" id="obj_table" lay-filter="obj_table"></table>
+<div id="laypage" class="layui-laypage-btn"></div>
+
+<div class="layui-row operation_object" id="object-content" style="display:none;">
+    <form class="layui-form layui-form-pane" action="" style="margin-top: 10px;margin-left: 10px;margin-right: 10px;" lay-filter="objectEditFilter" autocomplete="off">
+        <input name="id" hidden/>
+        <div class="layui-form-item">
+            <label class="layui-form-label">商家名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="storeName" placeholder="请输入商家名称" lay-verify="required" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">商家联系人</label>
+            <div class="layui-input-block">
+                <input type="text" name="storeLinkUser" placeholder="请输入商家联系人" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-form-label ">商家联系方式</div>
+            <div class="layui-input-block">
+                <input type="text" name="storeLinkPhone" placeholder="请输入商家联系方式" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-form-label ">所属社区</div>
+            <div class="layui-input-block">
+                <select name="communityId" id="community" lay-filter="community_filter" lay-verify="required" lay-search="">
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-form-label ">序号</div>
+            <div class="layui-input-block">
+                <input type="text" name="orderNum" placeholder="请输入序号" lay-verify="required" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-form-label ">商家声明</div>
+            <div class="layui-input-block">
+                <textarea name="storeStatement" placeholder="请输入商家声明" class="layui-textarea"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div style="text-align: center;">
+                <button type="submit" class="layui-btn" lay-submit="" lay-filter="edit-object-submit">保存</button>
+                <button class="layui-btn layui-btn-primary" id="btn_cancel">返回</button>
+            </div>
+        </div>
+    </form>
+</div>
+<div id="uploadImg" style="display: none;">
+    <input id="weixinMoneyInput" value="" type="hidden"/>
+    <div style="text-align: center;">
+        <button type="button" class="layui-btn layui-btn-danger" id="editimg"><i class="layui-icon"></i>上传收款码</button>
+    </div>
+</div>
+</body>
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-group">
+        <button type="button" class="layui-btn layui-btn-sm" lay-event="addObject" shiro:hasPermission="buy:store:add">
+            <i class="layui-icon">&#xe608;</i> 新增商家
+        </button>
+    </div>
+</script>
+<script type="text/html" id="tool">
+    <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="uploadWeixinMoney">上传收款码</a>
+    <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="updateState" shiro:hasPermission="buy:store:update">变更状态</a>
+    <a class="layui-btn layui-btn-xs" lay-event="edit" shiro:hasPermission="buy:store:update">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" shiro:hasPermission="buy:store:deleted">删除</a>
+</script>
+<script src="/layui/layui.all.js?v=<%=Math.random()%>"></script>
+<script src="/js/core.util.js?v=<%=Math.random()%>"></script>
+<script>
+    let table = layui.table;
+    let laypage = layui.laypage;
+    let form = layui.form;
+    let layer = layui.layer;
+    let $ = jQuery = layui.jquery;
+    let laydate = layui.laydate;
+    let upload = layui.upload;
+    layui.use(['table', 'laypage', 'layer', 'laydate', 'form', 'upload'], function () {
+
+        let searchParam = {
+            storeName: null,
+            comm: null,
+            startTime: null,
+            endTime: null,
+            pageNum: 1,
+            pageSize: 10
+        };
+
+        //上传收款码
+        upload.render({
+            elem: '#editimg'
+            , url: '/buy/uploadWeixinMoney'
+            , accept: 'images'
+            , method: 'post' //可选项。HTTP类型，默认post
+            , headers: {authorization: CoreUtil.getData("access_token")} //接口的请求头。如：headers: {token: 'sasasas'}。注：该参数为 layui 2.2.6 开始新增
+            , auto: true //是否选完文件后自动上传。如果设定 false，那么需要设置 bindAction 参数来指向一个其它按钮提交上传
+            , size: 500 //限制文件大小，单位 KB
+            //上传前的回调
+            , before: function (obj) {
+                layer.load(); //上传loading
+                this.data = {'storeId': $('#weixinMoneyInput').val()};
+            }
+            //选择文件后的回调
+            , choose: function (obj) {
+                obj.preview(function (index, file, result) {
+                    // $('#preview').attr('src', result);
+                    // console.log(index);
+                    console.log(file);
+                    // console.log(result);
+                })
+            }
+            , done: function (res) {
+                $(".layui-laypage-btn").click();
+                layer.closeAll(); //疯狂模式，关闭所有层
+                layer.msg('上传成功');
+            }
+            //上传错误回调
+            , error: function (index, upload) {
+                layer.alert('上传失败！' + index);
+            }
+        });
+
+        //初始化查询条件中的社区选择框
+        CoreUtil.sendAjax("/order/getAllCommunity", null, function (res) {
+            let communityList = res.data;
+            let html = '';
+            if (communityList != null) {
+                html += "<option value=''>请选择社区</option>";
+                $.each(communityList, function (key, value) {
+                    html += "<option value='" + value.id + "'>" + value.comName + "</option>";
+                })
+            } else {
+                html += "<option value=''>暂无数据</option>";
+            }
+            $('select[name=comm]').html(html);
+            layui.form.render("select");
+        }, "GET", false, function (res) {
+            layer.msg("抱歉！您暂无获取列表的权限");
+        });
+
+        //查询所有数据
+        CoreUtil.sendAjax("/buy/storeAll", JSON.stringify(searchParam), function (res) {
+            //初始化分页器
+            laypageTable(res.data.totalRows, searchParam.pageNum);
+            //初始化渲染数据
+            if (res.data.list != null) {
+                loadTable(res.data.list);
+            }
+        }, "POST", false, function (res) {
+            layer.msg("抱歉！您暂无获取列表的权限");
+            let noAuthorityData = [];
+            loadTable(noAuthorityData);
+        });
+
+        //渲染分页插件
+        let laypageTable = function (count, currentPage) {
+            laypage.render({
+                elem: 'laypage'
+                , count: count
+                , limit: searchParam.pageSize
+                , layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip']
+                , curr: location.hash.replace('#!currentPage=', '') //获取起始页
+                , hash: 'currentPage' //自定义hash值
+                , limits: [10, 25, 50, 100, 300, 500, 2000]
+                , jump: function (obj, first) {
+                    if (!first) {
+                        searchParam.pageNum = obj.curr;
+                        searchParam.pageSize = obj.limit;
+                        CoreUtil.sendAjax("/buy/storeAll", JSON.stringify(searchParam), function (res) {
+                            if (res.data.list != null) {
+                                loadTable(res.data.list);
+                                laypageTable(res.data.totalRows, searchParam.pageNum);
+                            }
+                        }, "POST", false, function (res) {
+                            layer.msg("抱歉！您暂无获取列表的权限");
+                            let noAuthorityData = [];
+                            loadTable(noAuthorityData);
+                        });
+                    }
+                }
+            });
+        };
+
+        //渲染社区下拉选择框
+        let loadCommunity = function (commId) {
+            CoreUtil.sendAjax("/order/getAllCommunity", null, function (res) {
+                let communityList = res.data;
+                let html = '';
+                if (communityList != null) {
+                    html += "<option value=''>请选择社区</option>";
+                    $.each(communityList, function (key, value) {
+                        if (value.id == commId) {
+                            html += "<option selected value='" + value.id + "'>" + value.comName + "</option>";
+                        } else {
+                            html += "<option value='" + value.id + "'>" + value.comName + "</option>";
+                        }
+                    })
+                } else {
+                    html += "<option value=''>暂无数据</option>";
+                }
+                $('select[name=communityId]').html(html);
+                layui.form.render("select");
+            }, "GET", false, function (res) {
+                layer.msg("抱歉！您暂无获取列表的权限");
+            });
+        };
+
+        // let loadCommunity = function () {
+        //     CoreUtil.sendAjax("/order/getAllCommunity", null, function (res) {
+        //         let communityList = res.data;
+        //         if (communityList != null) {
+        //             $("#community").empty();//清空下拉选择框
+        //             $("#community").append(new Option("请选择社区", ""));
+        //             $.each(communityList, function (index, item) {
+        //                 $('#community').append(new Option(item.comName, item.id));
+        //             });
+        //         } else {
+        //             $("#community").append(new Option("暂无数据", ""));
+        //         }
+        //         layui.form.render("select");
+        //     }, "GET", false, function (res) {
+        //         layer.msg("抱歉！您暂无获取列表的权限");
+        //     });
+        // };
+
+        //渲染table
+        let loadTable = function (data) {
+            table.render({
+                elem: '#obj_table'
+                , cols: [
+                    [
+                        {type: 'xuhao', fixed: 'left', title: '序号', width: 50, type: 'numbers'},
+                        {
+                            field: 'receiveMoney', align: 'center', title: '微信收款码', width: 110, templet: function (item) {
+                                return '<img id="receiveMoneyImg" style="height: 100%;" src="' + item.receiveMoney + '" />';
+                            }
+                        },
+                        {field: 'storeName', title: '商家名称', width: 250, sort: false},
+                        {field: 'storeLinkUser', title: '商家联系人', width: 100},
+                        {field: 'storeLinkPhone', title: '商家联系方式', width: 180},
+                        {field: 'storeStatement', title: '商家声明', width: 300},
+                        {field: 'communityName', title: '所属社区', width: 140},
+                        {
+                            field: 'storeState', title: '状态', width: 100, templet: function (item) {
+                                if (item.storeState === 1) {
+                                    return '<input type="checkbox" lay-skin="switch" lay-text="正常|禁用" checked disabled>';
+                                }
+                                if (item.storeState === 0) {
+                                    return '<input type="checkbox" lay-skin="switch" lay-text="正常|禁用" disabled>';
+                                }
+                            }
+                        },
+                        {field: 'orderNum', title: '排序', width: 80},
+                        {field: 'createTime', title: '创建时间', sort: true, minWidth: 170},
+                        {width: 290, toolbar: "#tool", title: '操作', fixed: 'right'}
+                    ]
+                ]
+                , data: data
+                , even: true
+                , limit: data.length
+                , toolbar: '#toolbar'
+            });
+        };
+
+        //显示图片
+        let openImage = function (data) {
+            let dataLet = '<img id="receiveMoneyImg" style="width: 300px;height: 300px;" src="' + data + '"  >'
+            layer.msg(dataLet, {
+                shade: '0.8'
+                , shadeClose: true
+                , time: 3000
+            });
+        }
+
+        //监听点击收款码事件
+        $(document).on("click", ".layui-table-main tr", function (data) {
+            //console.log(data);
+            //可以理解为鼠标移动到table时拿到了该行表格的所有数据，
+            //然后判断 data.toElement.id 是否等于上面定义的<img> 的id  receiveMoneyImg
+            if (data.toElement.id == "receiveMoneyImg") {
+                //拿到 id 为 receiveMoneyImg img的 属性
+                let dataVar = data.toElement.outerHTML;
+                //由于是整个img 我们只需要图片地址 进行截取
+                let arr = dataVar.split('src="')[1].split('>')[0];
+                //判断是否是图片格式，为图片格式则走openMsg分支
+                if (!/.(gif|jpg|jpeg|png|gif|jpg|png)$/.test(arr)) {
+                    openImage(arr)
+                }
+            }
+        });
+
+        //监听状态开关
+        form.on('switch(switch-status)', function () {
+            $(".operation_object input[name=storeState]").attr('type', 'hidden').val(this.checked ? 1 : 0);
+        });
+
+        //日期范围
+        laydate.render({
+            elem: '#createTime'
+            , type: 'datetime'
+            , range: '~'
+            , done: function (value, date, endDate) {
+                if (value != null && value != undefined && value != "") {
+                    searchParam.startTime = value.split("~")[0];
+                    searchParam.endTime = value.split("~")[1];
+                } else {
+                    //清空时间的时候要清空以前选择的日期
+                    searchParam.startTime = null;
+                    searchParam.endTime = null;
+                }
+            }
+        });
+
+        //执行查询
+        $("#search").click(function () {
+            searchParam.storeName = $("#storeName").val();
+            searchParam.comm = $("#comm").val();
+            searchParam.pageNum = 1;
+            CoreUtil.sendAjax("/buy/storeAll", JSON.stringify(searchParam), function (res) {
+                //初始化分页器
+                laypageTable(res.data.totalRows, searchParam.pageNum);
+                //初始化渲染数据
+                if (res.data.list != null) {
+                    loadTable(res.data.list);
+                }
+            }, "POST", false, function (res) {
+                layer.msg("抱歉！您暂无获取列表的权限");
+                let noAuthorityData = [];
+                loadTable(noAuthorityData);
+            });
+            return false;
+        });
+
+        //监听表格头部工具栏事件
+        table.on('toolbar(obj_table)', function (obj) {
+            let data = obj.data;
+            switch (obj.event) {
+                case 'addObject':
+                    loadCommunity('');
+                    form.val("objectEditFilter", {
+                        "storeName": ''
+                        , "id": ''
+                        , "storeLinkUser": ''
+                        , "storeLinkPhone": ''
+                        , "storeStatement": ''
+                        , "orderNum": ''
+                    });
+                    layer.open({
+                        //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                        type: 1,
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: "新增商家信息",
+                        area: ['650px'],
+                        content: $("#object-content") //引用的弹出层的页面层的方式加载修改界面表单
+                    });
+                    break;
+            }
+        });
+
+        //监听提交-编辑/新增信息弹框
+        form.on('submit(edit-object-submit)', function (data) {
+            if (data.field.id === undefined || data.field.id === null || data.field.id === "") {
+                console.log(JSON.stringify(data.field));
+                CoreUtil.sendAjax("/buy/store", JSON.stringify(data.field), function (res) {
+                    layer.closeAll(); //疯狂模式，关闭所有层
+                    layer.msg(res.msg);
+                    $(".layui-laypage-btn").click();
+                }, "POST", false, function (res) {
+                    layer.msg("抱歉！您暂无新增权限");
+                });
+            } else {
+                CoreUtil.sendAjax("/buy/store", JSON.stringify(data.field), function (res) {
+                    layer.closeAll(); //疯狂模式，关闭所有层
+                    layer.msg(res.msg);
+                    $(".layui-laypage-btn").click();
+                }, "PUT", false, function (res) {
+                    layer.msg("抱歉！您暂无编辑权限");
+                });
+            }
+            return false;
+        });
+
+        //监听行工具事件
+        table.on('tool(obj_table)', function (obj) {
+            let data = obj.data;
+            switch (obj.event) {
+                case 'del':
+                    // let logIds = [];
+                    // logIds.push(data.id);
+                    tipDialog(data.id);
+                    break;
+                case 'edit':
+                    layer.open({
+                        //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                        type: 1,
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: "修改用户信息",
+                        area: ['650px'],
+                        content: $("#object-content") //引用的弹出层的页面层的方式加载修改界面表单
+                    });
+                    //回显数据，填充表格
+                    setFormValue(obj);
+                    break;
+                case 'updateState':
+                    let stateVal = 1;
+                    if (data.storeState === 1) {
+                        stateVal = 0;
+                    }
+                    let updateData = {
+                        id: data.id
+                        , storeName: data.storeName
+                        , storeState: stateVal
+                    };
+                    //询问框
+                    layer.confirm('确定要变更状态吗？', {
+                        btn: ['确定', '取消'] //按钮
+                    }, function () {
+                        CoreUtil.sendAjax("/buy/store", JSON.stringify(updateData), function (res) {
+                            // layer.msg('OK', {icon: 1});
+                            // layer.closeAll(); //疯狂模式，关闭所有层
+                            layer.msg(res.msg, {icon: 1});
+                            $(".layui-laypage-btn").click();
+                        }, "PUT", false, function (res) {
+                            layer.msg("抱歉！您暂无编辑权限");
+                        });
+                    }, function () {
+                        layer.msg('已取消操作！', {icon: 1});
+                    });
+                    break;
+                case 'uploadWeixinMoney':
+                    $('#weixinMoneyInput').val(data.id);
+                    layer.open({
+                        //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                        type: 1,
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: "上传收款码",
+                        area: ['400px', '100px'],
+                        content: $("#uploadImg") //引用的弹出层的页面层的方式加载修改界面表单
+                    });
+                    break;
+            }
+        });
+
+        //回显数据，填充表格
+        function setFormValue(obj) {
+            let data = obj.data;
+            form.val("objectEditFilter", {
+                "storeName": data.storeName
+                , "id": data.id
+                , "storeLinkUser": data.storeLinkUser
+                , "storeLinkPhone": data.storeLinkPhone
+                , "storeStatement": data.storeStatement
+                , "orderNum": data.orderNum
+            });
+            loadCommunity(data.communityId);
+        }
+
+        //删除前确认对话框
+        let tipDialog = function (id) {
+            layer.open({
+                content: '确定要删除么',
+                yes: function (index, layero) {
+                    layer.close(index); //如果设定了yes回调，需进行手工关闭
+                    CoreUtil.sendAjax("/buy/store/" + id, null, function (res) {
+                        layer.msg(res.msg);
+                        $(".layui-laypage-btn").click();
+                    }, "DELETE", false, function (res) {
+                        layer.msg("抱歉！您暂无删除权限");
+                    });
+                }
+            });
+        }
+    });
+</script>
+</html>
