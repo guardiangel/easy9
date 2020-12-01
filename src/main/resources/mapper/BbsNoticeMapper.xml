@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.colin.mapper.yw.BbsNoticeMapper">
+
+  <resultMap id="BaseResultMap" type="org.colin.model.ro.BbsNotice">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="update_user_id" jdbcType="VARCHAR" property="updateUserId" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="content" jdbcType="VARCHAR" property="content" />
+    <result column="state" jdbcType="VARCHAR" property="state" />
+    <result column="read_count" jdbcType="INTEGER" property="readCount" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, update_time, update_user_id, title, content, state, read_count
+  </sql>
+
+  <!--查询所有通知通告-->
+  <select id="getAllNotice" parameterType="java.lang.String" resultType="org.colin.model.vo.resp.BbsNoticeVO">
+    select
+    t1.id, t1.update_time, t1.update_user_id, t2.user_name as update_user_name, t1.title, t1.content, t1.state, t1.read_count
+    from bbs_notice t1, bbs_user t2
+    where t1.update_user_id = t2.id
+    ORDER BY t1.state desc, t1.update_time desc
+  </select>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultType="org.colin.model.vo.resp.BbsNoticeVO">
+    select
+    t1.id, t1.update_time, t1.update_user_id, t2.user_name as update_user_name, t1.title, t1.content, t1.state, t1.read_count
+    from bbs_notice t1, bbs_user t2
+    where t1.update_user_id = t2.id
+    and t1.id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from bbs_notice
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="org.colin.model.ro.BbsNotice">
+    insert into bbs_notice (id, update_time, update_user_id, 
+      title, content, state,
+      read_count)
+    values (#{id,jdbcType=VARCHAR}, #{updateTime,jdbcType=TIMESTAMP}, #{updateUserId,jdbcType=VARCHAR},
+      #{title,jdbcType=VARCHAR}, #{content,jdbcType=VARCHAR}, #{state,jdbcType=VARCHAR},
+      #{readCount,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="org.colin.model.ro.BbsNotice">
+    insert into bbs_notice
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="updateUserId != null">
+        update_user_id,
+      </if>
+      <if test="title != null">
+        title,
+      </if>
+      <if test="content != null">
+        content,
+      </if>
+      <if test="state != null">
+        state,
+      </if>
+      <if test="readCount != null">
+        read_count,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateUserId != null">
+        #{updateUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="title != null">
+        <![CDATA[#{title,jdbcType=VARCHAR},]]>
+      </if>
+      <if test="content != null">
+        <![CDATA[#{content,jdbcType=VARCHAR},]]>
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=VARCHAR},
+      </if>
+      <if test="readCount != null">
+        #{readCount,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="org.colin.model.ro.BbsNotice">
+    update bbs_notice
+    <set>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateUserId != null">
+        update_user_id = #{updateUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="title != null">
+        title = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null">
+        content = #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        state = #{state,jdbcType=VARCHAR},
+      </if>
+      <if test="readCount != null">
+        read_count = #{readCount,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+
+  <update id="updateByPrimaryKey" parameterType="org.colin.model.ro.BbsNotice">
+    update bbs_notice
+    set update_time = #{updateTime,jdbcType=TIMESTAMP},
+      update_user_id = #{updateUserId,jdbcType=VARCHAR},
+      title = #{title,jdbcType=VARCHAR},
+      content = #{content,jdbcType=VARCHAR},
+      state = #{state,jdbcType=VARCHAR},
+      read_count = #{readCount,jdbcType=INTEGER}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+
+  <!--新增阅读次数-->
+  <update id="addReadCount" parameterType="java.lang.String">
+    update bbs_notice t1 set t1.read_count = t1.read_count + 1
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

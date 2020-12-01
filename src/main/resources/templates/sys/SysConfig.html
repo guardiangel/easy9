@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro"
+      xmlns:th="http://www.thymeleaf.org"
+>
+<head>
+    <meta charset="UTF-8">
+    <title>系统参数管理页面</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <link rel="stylesheet" href="/css/custom.form.css">
+    <style>
+        .wjb{
+            width: 494px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="searchParam">
+    <div class="layui-form-item" shiro:hasPermission="config:queryAll">
+        <div class="layui-input-inline">
+            <input type="text" id="sysKey" class="layui-input" autocomplete="off" placeholder="参数键">
+        </div>
+        <div class="layui-input-inline">
+            <input type="text" id="sysDesc" class="layui-input" autocomplete="off" placeholder="参数描述">
+        </div>
+        <div class="layui-input-inline ">
+            <button class="layui-btn" id="search">
+                <span class="layui-icon layui-icon-search"></span>查询
+            </button>
+        </div>
+    </div>
+</div>
+
+<!--新增/编辑-->
+<div class="layui-row operation_role" id="edit-role-info" style="display:none;">
+    <form class="layui-form " action="" lay-filter="roleEditFilter" id="roleEditFilter" style="width: 700px;margin-top: 10px">
+        <input name="id" id="id" type="hidden"/>
+        <div class="layui-form-item">
+            <label class="layui-form-label">参数键</label>
+            <div class="layui-input-block">
+                <input type="text" name="sysKey" id="sysKeyId" placeholder="请输入参数键" autocomplete="off" class="layui-input wjb">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">参数值</label>
+            <div class="layui-input-block">
+                <input type="text" name="sysValue" placeholder="请输入参数值" autocomplete="off" class="layui-input wjb">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-form-label ">描述</div>
+            <div class="layui-input-block">
+                <input type="text" name="sysDesc" placeholder="请输入描述" autocomplete="off" class="layui-input wjb">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button type="submit" class="layui-btn" lay-submit="" lay-filter="edit-role-submit">保存</button>
+                <button class="layui-btn layui-btn-primary" id="btn_cancel">返回</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!--表格-->
+<table class="layui-hide" id="role_table" lay-filter="role_table" lay-skin="line"></table>
+
+</body>
+
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-group">
+        <button type="button" class="layui-btn" lay-event="addNewRole" shiro:hasPermission="config:insert">
+            <i class="layui-icon">&#xe608;</i> 新增参数
+        </button>
+    </div>
+</script>
+<script type="text/html" id="tool">
+    <a class="layui-btn layui-btn-xs" lay-event="edit" shiro:hasPermission="config:updateConfig">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" shiro:hasPermission="config:delConfig">删除</a>
+</script>
+
+<script src="/layui/layui.all.js"></script>
+<script src="/js/core.util.js"></script>
+
+<script>
+    let $ = jQuery = layui.jquery;
+    let table = layui.table
+        , form = layui.form
+        , layer = layui.layer;
+    layui.use(['table', 'layer'], function () {
+        //搜索条件
+        let searchParam = {
+            sysKey: null,
+            sysDesc: null
+        };
+
+        $(function () {
+            //加载表格
+            getTableData();
+        });
+
+        //渲染table
+        let loadTable = function (data) {
+            // console.log(data);
+            table.render({
+                elem: '#role_table'
+                , cols: [
+                    [
+                        {type: 'checkbox', fixed: 'left'},
+                        {field: 'sysKey', fixed: 'left', title: '参数键', width: 160},
+                        {field: 'sysValue', title: '参数值', width: 180},
+                        {field: 'sysDesc', title: '描述', width: 300},
+                        {field: 'updateUserName', title: '更新人', width: 100},
+                        {field: 'updateTime', title: '更新时间', sort: true, width: 170},
+                        {width: 200, toolbar: "#tool", title: '操作', fixed: 'right'}
+                    ]
+                ]
+                , data: data
+                , loading: true
+                , even: true
+                , limit: data.length
+                , toolbar: '#toolbar'
+                , defaultToolbar: ['filter', 'print', 'exports']
+            });
+        };
+
+        //执行查询
+        $("#search").click(function () {
+            searchParam.sysKey = $("#sysKey").val();
+            searchParam.sysDesc = $("#sysDesc").val();
+            CoreUtil.sendAjax("/config/queryAll", JSON.stringify(searchParam), function (res) {
+                if (res.data != null) {
+                    loadTable(res.data);
+                }
+            }, "POST", false, function (res) {
+                layer.msg(res.msg);
+            });
+        });
+
+        function getTableData(){
+            //获取所有系统参数
+            CoreUtil.sendAjax("/config/queryAll", JSON.stringify(searchParam), function (res) {
+                if (res.data != null) {
+                    // console.log(res);
+                    loadTable(res.data);
+                }
+            }, "POST", false, function (res) {
+                layer.msg(res.msg);
+            });
+        }
+
+        //监听提交-编辑/新增弹框
+        form.on('submit(edit-role-submit)', function (data) {
+            console.log(data);
+            if (data.field.id === undefined || data.field.id === null || data.field.id === "") {
+                //新增
+                CoreUtil.sendAjax("/config/insert", JSON.stringify(data.field), function (res) {
+                    layer.closeAll(); //疯狂模式，关闭所有层
+                    layer.msg(res.msg);
+                    getTableData();
+                }, "POST", false, function (res) {
+                    layer.msg(res.msg);
+                });
+            } else {
+                //修改
+                CoreUtil.sendAjax("/config/updateConfig", JSON.stringify(data.field), function (res) {
+                    layer.closeAll(); //疯狂模式，关闭所有层
+                    layer.msg(res.msg);
+                    getTableData();
+                }, "PUT", false, function (res) {
+                    layer.msg(res.msg);
+                });
+            }
+            return false;
+        });
+
+        //监听表格头部工具栏事件
+        table.on('toolbar(role_table)', function (obj) {
+            switch (obj.event) {
+                case 'addNewRole':
+                    //重置表单数据
+                    $("#roleEditFilter")[0].reset();
+                    form.render();
+                    layer.open({
+                        type: 1, //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: "新增系统参数",
+                        area: ['90%','90%'],
+                        content: $("#edit-role-info") //引用的弹出层的页面层的方式加载修改界面表单
+                    });
+                    break;
+            }
+        });
+
+        //监听行工具事件
+        table.on('tool(role_table)', function (obj) {
+            switch (obj.event) {
+                case 'del':
+                    deleteDialog(obj.data.id);
+                    break;
+                case 'edit':
+                    $("#id").val(obj.data.id);
+                    $("#sysKeyId").attr("disabled", "disabled");//参数键不可修改
+                    layer.open({
+                        //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                        type: 1,
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: "修改系统参数",
+                        area: ['90%','90%'],
+                        content: $("#edit-role-info") //引用的弹出层的页面层的方式加载修改界面表单
+                    });
+                    //回显数据，填充表格
+                    setFormValue(obj);
+                    break;
+            }
+        });
+
+        //回显数据，填充表格
+        function setFormValue(obj) {
+            form.val("roleEditFilter", {
+                "sysKey": obj.data.sysKey
+                , "sysValue": obj.data.sysValue
+                , "sysDesc": obj.data.sysDesc
+            });
+            form.render();
+        }
+
+        //是否删除确认框
+        let deleteDialog = function (id) {
+            layer.open({
+                content: '确定要删除该记录吗?',
+                yes: function (index, layero) {
+                    layer.close(index); //如果设定了yes回调，需进行手工关闭
+                    CoreUtil.sendAjax("/config/delConfig/" + id, null, function (res) {
+                        layer.msg(res.msg);
+                        getTableData();
+                    }, "DELETE", false);
+                }
+            });
+        };
+
+    });
+</script>
+</html>

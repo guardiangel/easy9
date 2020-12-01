@@ -1,0 +1,539 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.colin.mapper.yw.BbsPostMapper">
+
+  <resultMap id="BaseResultMap" type="org.colin.model.ro.BbsPost">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="update_user_id" jdbcType="VARCHAR" property="updateUserId" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="content" jdbcType="VARCHAR" property="content" />
+    <result column="bbs_type" jdbcType="VARCHAR" property="bbsType" />
+    <result column="read_count" jdbcType="INTEGER" property="readCount" />
+    <result column="good_count" jdbcType="INTEGER" property="goodCount" />
+    <result column="publish_time" jdbcType="TIMESTAMP" property="publishTime" />
+    <result column="publish_user_id" jdbcType="VARCHAR" property="publishUserId" />
+    <result column="state" jdbcType="VARCHAR" property="state" />
+    <result column="post_type" jdbcType="VARCHAR" property="postType" />
+    <result column="reason" jdbcType="VARCHAR" property="reason" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, update_time, update_user_id, title, content, bbs_type, read_count, good_count, 
+    publish_time, publish_user_id, state, post_type, reason
+  </sql>
+
+  <!--后台接口SQL**********开始-->
+
+    <!--查询[北方社区]评论数量-->
+    <select id="selectReplyCount" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select count(1) from bbs_post_reply
+        <where>
+            <if test="state != null and state != '' ">
+                and state = #{state}
+            </if>
+        </where>
+    </select>
+
+    <!--查询[北方社区]发帖数量-->
+    <select id="selectPostCount" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select count(1) from bbs_post
+        <where>
+            <if test="state != null and state != '' ">
+                and state = #{state}
+            </if>
+        </where>
+    </select>
+
+  <!--查询所有帖子-含分页-->
+  <select id="selectAllPostByPage" parameterType="org.colin.model.vo.req.BbsPostPageReqVO" resultType="org.colin.model.vo.resp.BbsPostVO">
+        select
+            t1.id, t1.update_time as updateTime, t1.update_user_id as updateUserId, t2.user_name as updateUserIdName, t1.title,
+            t1.content, t1.bbs_type as bbsType, t1.read_count as readCount, t1.good_count as goodCount, t1.publish_time as publishTime,
+            t1.publish_user_id as publishUserId, t3.user_name as publishUserName, t1.state, t1.post_type as postType, t1.reason
+        from bbs_post t1
+        left join bbs_user t2 on t1.update_user_id = t2.id
+        left join bbs_user t3 on t1.publish_user_id = t3.id
+        <where>
+            <if test="publishUserName != null and publishUserName != '' ">
+                <![CDATA[AND t3.real_name LIKE concat('%',#{publishUserName},'%')]]>
+            </if>
+            <if test="bbsType != null and bbsType != '' ">
+                <![CDATA[AND t1.bbs_type = #{bbsType}]]>
+            </if>
+            <if test="state != null and state != '' ">
+                <![CDATA[AND t1.state = #{state}]]>
+            </if>
+            <if test="postType != null and postType != '' ">
+                <![CDATA[AND t1.post_type = #{postType}]]>
+            </if>
+            <if test="title != null and title != '' ">
+                <![CDATA[AND t1.title LIKE concat('%',#{title},'%')]]>
+            </if>
+            <if test="startTime != null and startTime != ''">
+                <![CDATA[AND t1.publish_time &gt;= #{startTime}]]>
+            </if>
+            <if test="endTime != null and endTime != ''">
+                <![CDATA[AND t1.publish_time &lt;= #{endTime}]]>
+            </if>
+        </where>
+        ORDER BY t1.publish_time desc
+  </select>
+  <!--查询所有评论-含分页-->
+  <select id="selectAllReplyByPage" parameterType="org.colin.model.vo.req.BbsReplyPageReqVO" resultType="org.colin.model.vo.resp.ReplyVO">
+        select
+            t1.id, t1.update_time as updateTime, t1.update_user_id as updateUserId, t2.user_name as updateUserIdName, t1.post_id as postId,
+            t1.content, t1.reply_type as replyType, t1.publish_time as publishTime,
+            t1.publish_user_id as publishUserId, t3.user_name as publishUserIdName, t1.state, t1.pid, t1.reason,
+            t4.title as postTitle, t4.content as postContent
+        from bbs_post_reply t1
+        left join bbs_user t2 on t1.update_user_id = t2.id
+        left join bbs_user t3 on t1.publish_user_id = t3.id
+        left join bbs_post t4 on t1.post_id = t4.id
+        <where>
+            <if test="publishUserName != null and publishUserName != '' ">
+                <![CDATA[AND t3.real_name LIKE concat('%',#{publishUserName},'%')]]>
+            </if>
+            <if test="title != null and title != '' ">
+                <![CDATA[AND t4.title LIKE concat('%',#{title},'%')]]>
+            </if>
+            <if test="replyType != null and replyType != '' ">
+                <![CDATA[AND t1.reply_type = #{replyType}]]>
+            </if>
+            <if test="state != null and state != '' ">
+                <![CDATA[AND t1.state = #{state}]]>
+            </if>
+            <if test="startTime != null and startTime != ''">
+                <![CDATA[AND t1.publish_time &gt;= #{startTime}]]>
+            </if>
+            <if test="endTime != null and endTime != ''">
+                <![CDATA[AND t1.publish_time &lt;= #{endTime}]]>
+            </if>
+        </where>
+        ORDER BY t1.publish_time desc
+  </select>
+
+  <!--根据评论状态查询所有评论信息-->
+  <select id="selectAllReplyByState" parameterType="org.colin.model.vo.req.BbsReplyPageReqVO" resultType="org.colin.model.vo.resp.ReplyVO">
+        select
+            t1.id, t1.update_time, t1.update_user_id as updateUserId, t2.user_name as updateUserIdName, t1.post_id as postId,
+            t1.content, t1.reply_type as replyType, t1.publish_time as publishTime,
+            t1.publish_user_id as publishUserIdName, t3.user_name as publishUserIdName, t1.state, t1.pid, t1.reason,
+            t4.title as postTitle, t4.content as postContent, t5.photo as publishUserImg
+        from bbs_post_reply t1
+        left join bbs_user t2 on t1.update_user_id = t2.id
+        left join bbs_user t3 on t1.publish_user_id = t3.id
+        left join bbs_post t4 on t1.post_id = t4.id
+        left join sys_user_photo t5 on t1.publish_user_id = t5.user_id
+        where t1.state = #{replyState}
+        ORDER BY t1.publish_time asc
+  </select>
+
+  <!--查询评论详情-->
+  <select id="getReplyById" parameterType="org.colin.model.vo.req.BbsReplyPageReqVO" resultType="org.colin.model.vo.resp.ReplyVO">
+        select
+            t1.id, t1.update_time as updateTime, t1.update_user_id as updateUserIdName, t2.user_name as updateUserIdName, t1.post_id as postId,
+            t1.content, t1.reply_type as replyType, t1.publish_time as publishTime,
+            t1.publish_user_id as publishUserId, t3.user_name as publishUserIdName, t1.state, t1.pid, t1.reason,
+            t4.title as postTitle, t4.content as postContent, t4.post_type as postType, t5.photo as publishUserImg
+        from bbs_post_reply t1
+        left join bbs_user t2 on t1.update_user_id = t2.id
+        left join bbs_user t3 on t1.publish_user_id = t3.id
+        left join bbs_post t4 on t1.post_id = t4.id
+        left join sys_user_photo t5 on t1.publish_user_id = t5.user_id
+        where t1.id = #{id}
+        ORDER BY t1.publish_time asc
+  </select>
+  <!--查询所有意见反馈-含分页-->
+  <select id="selectAllSuggestionByPage" parameterType="org.colin.model.vo.req.SysSuggestionPageReqVO" resultType="org.colin.model.vo.resp.SysSuggestionVO">
+      select
+      t1.id, t1.update_time as updateTime, t1.update_user_id as updateUserId, t1.content, t1.source, t1.type, t2.user_name as updateUserIdName
+      from sys_suggestion t1
+      left join bbs_user t2 on t1.update_user_id = t2.id
+        <where>
+            <if test="updateUserIdName != null and updateUserIdName != '' ">
+                <![CDATA[AND t2.real_name LIKE concat('%',#{updateUserIdName},'%')]]>
+            </if>
+            <if test="content != null and content != '' ">
+                <![CDATA[AND t1.content LIKE concat('%',#{content},'%')]]>
+            </if>
+            <if test="source != null and source != '' ">
+                <![CDATA[AND t1.source = #{source}]]>
+            </if>
+            <if test="type != null and type != '' ">
+                <![CDATA[AND t1.type = #{type}]]>
+            </if>
+            <if test="startTime != null and startTime != ''">
+                <![CDATA[AND t1.updateTime &gt;= #{startTime}]]>
+            </if>
+            <if test="endTime != null and endTime != ''">
+                <![CDATA[AND t1.updateTime &lt;= #{endTime}]]>
+            </if>
+        </where>
+        ORDER BY t1.update_time desc
+  </select>
+  <!--后台接口SQL**********结束-->
+
+  <!--查询指定帖子的所有评论信息-->
+  <select id="selectAllPostReply" parameterType="java.lang.String" resultType="org.colin.model.vo.resp.BbsPostReplyVO">
+        select
+            t1.id, t1.update_time as updateTime, t1.update_user_id as updateUserIdName, t1.post_id as postId, t1.publish_time as publishTime,
+            t1.publish_user_id as publishUserId, t1.content, t1.pid, t1.state, t1.reply_type as replyType, t1.reason,
+            t2.user_name as publishUserIdName, t3.photo as publishUserPhoto, t2.sex, t2.point
+        from bbs_post_reply t1
+        left join bbs_user t2 on t1.publish_user_id = t2.id
+        left join sys_user_photo t3 on t1.publish_user_id = t3.user_id
+        where t1.post_id = #{post_id} and t1.state = '2'
+        ORDER BY t1.reply_type desc, t1.publish_time desc
+  </select>
+
+  <!--查询指定帖子的评论数量-->
+  <select id="selectPostReplyCount" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select count(1) from bbs_post_reply t1 where t1.post_id = #{post_id} and t1.state = '2'
+  </select>
+
+  <!--新增帖子点赞次数-->
+  <update id="addGoodCount" parameterType="java.lang.String">
+    update bbs_post t1 set t1.good_count = t1.good_count + 1
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+
+  <!--新增帖子阅读次数-->
+  <update id="addReadCount" parameterType="java.lang.String">
+    update bbs_post t1 set t1.read_count = t1.read_count + 1
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+
+  <!--查询所有帖子信息(只查距离当前n个月的所有记录)-->
+  <select id="selectAllPost" parameterType="java.lang.String" resultType="org.colin.model.vo.resp.BbsPostVO">
+        select
+            t1.id, t1.update_time as updateTime, t1.update_user_id as updateUserId, t3.user_name as publishUserName, t1.title,
+            t1.content, t1.bbs_type as bbsType, t1.read_count as readCount, t1.good_count as goodCount, t1.publish_time as publishTime,
+            t1.state, t1.post_type as postType, t1.reason,
+            t4.photo as publishUserImg, t2.user_name as updateUserIdName
+        from bbs_post t1
+        left join bbs_user t2 on t1.update_user_id = t2.id
+        left join bbs_user t3 on t1.publish_user_id = t3.id
+        left join sys_user_photo t4 on t1.publish_user_id = t4.user_id
+        where t1.state = '2' and t1.post_type = #{postType} and t1.publish_time > DATE_SUB(CURDATE(), INTERVAL #{month} MONTH)
+        ORDER BY t1.bbs_type desc, t1.publish_time desc
+  </select>
+
+  <!--根据帖子状态查询所有帖子信息-->
+  <select id="selectAllPostByState" parameterType="java.lang.String" resultType="org.colin.model.vo.resp.BbsPostVO">
+        select
+            t1.id, t1.update_time as updateTime, t1.update_user_id as updateUserId, t2.user_name as updateUserIdName, t1.title,
+            t1.content, t1.bbs_type as bbsType, t1.read_count as readCount, t1.good_count as goodCount, t1.publish_time as publishTime,
+            t1.publish_user_id as publishUserName, t3.user_name as publishUserName, t1.state, t1.post_type as postType, t1.reason,
+            t4.photo as publishUserImg
+        from bbs_post t1
+        left join bbs_user t2 on t1.update_user_id = t2.id
+        left join bbs_user t3 on t1.publish_user_id = t3.id
+        left join sys_user_photo t4 on t1.publish_user_id = t4.user_id
+        where t1.state = #{postState}
+        ORDER BY t1.publish_time asc
+  </select>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultType="org.colin.model.vo.resp.BbsPostVO">
+    select
+        t1.id, t1.update_time as updateTime, t1.update_user_id as updateUserId, t2.user_name as updateUserIdName, t1.title,
+        t1.content, t1.bbs_type as bbsType, t1.read_count as readCount, t1.good_count as goodCount, t1.publish_time as publishTime,
+        t1.publish_user_id as publishUserId, t3.user_name as publishUserName, t1.state, t1.post_type as postType, t1.reason, t4.photo as publishUserImg,
+        t3.point, t3.sex
+    from bbs_post t1
+    left join bbs_user t2 on t1.update_user_id = t2.id
+    left join bbs_user t3 on t1.publish_user_id = t3.id
+    left join sys_user_photo t4 on t1.publish_user_id = t4.user_id
+    where t1.id = #{id,jdbcType=VARCHAR}
+  </select>
+    <!--删除帖子-->
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from bbs_post
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+    <!--删除评论-->
+  <delete id="deleteReplyByPrimaryKey" parameterType="java.lang.String">
+    delete from bbs_post_reply
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+    <!--根据帖子ID删除所有评论-->
+  <delete id="deleteReplyByPostId" parameterType="java.lang.String">
+    delete from bbs_post_reply
+    where post_id = #{post_id}
+  </delete>
+    <!--删除意见反馈-->
+  <delete id="deleteSuggestionByPkId" parameterType="java.lang.String">
+    delete from sys_suggestion
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="org.colin.model.ro.BbsPost">
+    insert into bbs_post (id, update_time, update_user_id, 
+      title, content, bbs_type, 
+      read_count, good_count, publish_time, 
+      publish_user_id, state, post_type
+      )
+    values (#{id,jdbcType=VARCHAR}, #{updateTime,jdbcType=TIMESTAMP}, #{updateUserId,jdbcType=VARCHAR}, 
+      #{title,jdbcType=VARCHAR}, #{content,jdbcType=VARCHAR}, #{bbsType,jdbcType=VARCHAR}, 
+      #{readCount,jdbcType=INTEGER}, #{goodCount,jdbcType=INTEGER}, #{publishTime,jdbcType=TIMESTAMP}, 
+      #{publishUserId,jdbcType=VARCHAR}, #{state,jdbcType=VARCHAR}, #{postType,jdbcType=VARCHAR}
+      )
+  </insert>
+
+  <!--新增帖子评论信息-->
+  <insert id="addPostReply" parameterType="org.colin.model.entity.yw.BbsPostReply">
+    insert into bbs_post_reply
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="updateUserId != null">
+        update_user_id,
+      </if>
+      <if test="postId != null">
+        post_id,
+      </if>
+      <if test="publishTime != null">
+        publish_time,
+      </if>
+      <if test="publishUserId != null">
+        publish_user_id,
+      </if>
+      <if test="content != null">
+        content,
+      </if>
+      <if test="pid != null">
+        pid,
+      </if>
+      <if test="state != null">
+        state,
+      </if>
+      <if test="replyType != null">
+        reply_type,
+      </if>
+      <if test="reason != null">
+        reason,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateUserId != null">
+        #{updateUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="postId != null">
+        #{postId,jdbcType=VARCHAR},
+      </if>
+      <if test="publishTime != null">
+        #{publishTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="publishUserId != null">
+        #{publishUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null">
+        <![CDATA[#{content},]]>
+      </if>
+      <if test="pid != null">
+        #{pid,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=VARCHAR},
+      </if>
+      <if test="replyType != null">
+        #{replyType,jdbcType=VARCHAR},
+      </if>
+      <if test="reason != null">
+        #{reason,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+
+  <!--新增建议意见信息-->
+  <insert id="addSuggestion" parameterType="org.colin.model.entity.SysSuggestion">
+    insert into sys_suggestion (id, update_time, update_user_id, content, source, type)
+    values (#{id,jdbcType=VARCHAR}, #{updateTime,jdbcType=TIMESTAMP}, #{updateUserId,jdbcType=VARCHAR},
+        <![CDATA[#{content,jdbcType=VARCHAR},]]> #{source,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR})
+  </insert>
+
+  <insert id="insertSelective" parameterType="org.colin.model.ro.BbsPost">
+    insert into bbs_post
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="updateUserId != null">
+        update_user_id,
+      </if>
+      <if test="title != null">
+        title,
+      </if>
+      <if test="content != null">
+        content,
+      </if>
+      <if test="bbsType != null">
+        bbs_type,
+      </if>
+      <if test="readCount != null">
+        read_count,
+      </if>
+      <if test="goodCount != null">
+        good_count,
+      </if>
+      <if test="publishTime != null">
+        publish_time,
+      </if>
+      <if test="publishUserId != null">
+        publish_user_id,
+      </if>
+      <if test="state != null">
+        state,
+      </if>
+      <if test="postType != null">
+        post_type,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateUserId != null">
+        #{updateUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="title != null">
+        <![CDATA[#{title},]]>
+      </if>
+      <if test="content != null">
+        <![CDATA[#{content},]]>
+      </if>
+      <if test="bbsType != null">
+        #{bbsType,jdbcType=VARCHAR},
+      </if>
+      <if test="readCount != null">
+        #{readCount,jdbcType=INTEGER},
+      </if>
+      <if test="goodCount != null">
+        #{goodCount,jdbcType=INTEGER},
+      </if>
+      <if test="publishTime != null">
+        #{publishTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="publishUserId != null">
+        #{publishUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=VARCHAR},
+      </if>
+      <if test="postType != null">
+        #{postType,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="org.colin.model.ro.BbsPost">
+    update bbs_post
+    <set>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateUserId != null">
+        update_user_id = #{updateUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="title != null">
+        title = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null">
+        content = #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="bbsType != null">
+        bbs_type = #{bbsType,jdbcType=VARCHAR},
+      </if>
+      <if test="readCount != null">
+        read_count = #{readCount,jdbcType=INTEGER},
+      </if>
+      <if test="goodCount != null">
+        good_count = #{goodCount,jdbcType=INTEGER},
+      </if>
+      <if test="publishTime != null">
+        publish_time = #{publishTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="publishUserId != null">
+        publish_user_id = #{publishUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        state = #{state,jdbcType=VARCHAR},
+      </if>
+      <if test="postType != null">
+        post_type = #{postType,jdbcType=VARCHAR},
+      </if>
+      <if test="reason != null">
+        reason = #{reason,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+
+    <!--更新评论信息-->
+    <update id="updateReplyByPrimaryKeySelective" parameterType="org.colin.model.ro.BbsReply">
+        update bbs_post_reply
+        <set>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateUserId != null">
+                update_user_id = #{updateUserId,jdbcType=VARCHAR},
+            </if>
+            <if test="postId != null">
+                post_id = #{postId,jdbcType=VARCHAR},
+            </if>
+            <if test="publishTime != null">
+                publish_time = #{publishTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="publishUserId != null">
+                publish_user_id = #{publishUserId,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null">
+                content = #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="pid != null">
+                pid = #{pid,jdbcType=VARCHAR},
+            </if>
+            <if test="state != null">
+                state = #{state,jdbcType=VARCHAR},
+            </if>
+            <if test="replyType != null">
+                reply_type = #{replyType,jdbcType=VARCHAR},
+            </if>
+            <if test="reason != null">
+                reason = #{reason,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+  <update id="updateByPrimaryKey" parameterType="org.colin.model.ro.BbsPost">
+    update bbs_post
+    set update_time = #{updateTime,jdbcType=TIMESTAMP},
+      update_user_id = #{updateUserId,jdbcType=VARCHAR},
+      title = #{title,jdbcType=VARCHAR},
+      content = #{content,jdbcType=VARCHAR},
+      bbs_type = #{bbsType,jdbcType=VARCHAR},
+      read_count = #{readCount,jdbcType=INTEGER},
+      good_count = #{goodCount,jdbcType=INTEGER},
+      publish_time = #{publishTime,jdbcType=TIMESTAMP},
+      publish_user_id = #{publishUserId,jdbcType=VARCHAR},
+      state = #{state,jdbcType=VARCHAR},
+      post_type = #{postType,jdbcType=VARCHAR}
+      reason = #{reason,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

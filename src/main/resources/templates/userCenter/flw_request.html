@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title>用户流程申请页面</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/css/custom.form.css">
+    <link rel="stylesheet" href="/js/zTree_v3/css/zTreeStyle/zTreeStyle.css">
+    <!--引入我们在https://www.iconfont.cn平台生成的图标样式库-->
+    <link rel="stylesheet" href="/layui/css/modules/layui-icon-extend/iconfont.css" media="all">
+    <style>
+        .ztree li {
+            line-height: 27px;
+        }
+
+        .ztree li span.button {
+            width: 18px;
+            height: 26px;
+        }
+
+        .ztree li span.button.ico_open {
+            margin-top: 5px;
+            margin-right: 0px;
+        }
+
+        .ztree li span.button.ico_docu {
+            margin-top: 5px;
+        }
+
+        .ztree li a.curSelectedNode {
+            height: 26px;
+        }
+        .layui-form-label{
+            width: 80px;
+        }
+
+        .checkInfoClass{
+            font-size: 14px;
+            color: #333333;
+            margin-left: 30px;
+            margin-top: 20px;
+            line-height: 25px;
+        }
+
+        .layui-form-label.layui-required:after{
+            content:"*";
+            color:red;
+            position: absolute;
+            top:9px;
+            margin-left: 3px;
+        }
+    </style>
+</head>
+<body>
+<div id="searchParam">
+    <div class="layui-form-item">
+        <div class="layui-input-inline layui-form">
+            <select name="checkLastResult" id="checkLastResult" class="select">
+                <option value="">请选择审核结果</option>
+                <option value="0">审核不通过</option>
+                <option value="1">审核中</option>
+                <option value="2">审核通过</option>
+            </select>
+        </div>
+        <div class="layui-input-inline layui-form">
+            <select id="queryFlwType" name="flwType" class="select">
+            </select>
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn" id="search">
+                <span class="layui-icon layui-icon-search"></span>查询
+            </button>
+        </div>
+    </div>
+</div>
+
+<table class="layui-hide" id="user_table" lay-filter="user_table" lay-skin="line"></table>
+<div id="laypage" class="$2('.layui-laypage-btn').click();"></div>
+
+<!--部门树型-->
+<div id="deptTree" style="display: none"></div>
+
+<!--
+这里是弹出层-编辑用户信息
+表单的id用于表单的选择，style是在本页隐藏，只有点击编辑才会弹出
+-->
+<div class="layui-row operation_user" id="edit-user-info" style="display:none;">
+    <form class="layui-form" action="" style="margin-top: 10px;margin-left: 10px;margin-right: 10px;" lay-filter="userEditFilter" id="userEditFilter" autocomplete="off">
+        <div class="layui-card-body">
+            <div class="main-div">
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 10px;">
+                    <legend>提交流程申请</legend>
+                </fieldset>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label layui-required">流程类型</label>
+                        <div class="layui-input-block">
+                            <select id="flwType" name="flwType" class="select" lay-verify="required">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label layui-required">审核人</label>
+                        <div class="layui-input-block">
+                            <input type="hidden" id="currentCheckUserId" name="currentCheckUserId"/>
+                            <input type="text" id="checkUserName" name="checkUserName" placeholder="请选择审核人" class="layui-input" readonly="readonly" style="background:#eeeeee!important" lay-verify="required">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label layui-required">申请描述</label>
+                        <div class="layui-input-block">
+                            <textarea name="descStr" id="descStr" class="layui-textarea" lay-verify="required"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div style="text-align: center;">
+                <button type="submit" class="layui-btn" lay-submit="" lay-filter="edit-user-submit">保存</button>
+                <button class="layui-btn layui-btn-primary" id="btn_cancel">返回</button>
+            </div>
+        </div>
+    </form>
+</div>
+<div id="userInfoDetailDiv" style="display:none;">
+    <div id="checkInfo"></div>
+</div>
+
+<!--部门人员树型菜单-->
+<div id="treeMultiple" class="ztree" style="display: none"></div>
+
+</body>
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-group">
+        <button type="button" class="layui-btn layui-btn-sm" lay-event="addNewUser" shiro:hasPermission="flw:request:addFlwRequest">
+            <i class="layui-icon">&#xe608;</i> 流程申请
+        </button>
+    </div>
+</script>
+<script type="text/html" id="tool">
+    <a class="layui-btn layui-btn-xs" lay-event="userInfoDetail">审核详情</a>
+</script>
+<script src="/layui/layui.all.js"></script>
+<script src="/js/core.util.js"></script>
+<script type="text/javascript" src="/js/zTree_v3/js/jquery-1.4.4.min.js"></script>
+<script type="text/javascript" src="/js/zTree_v3/js/jquery.ztree.core.js"></script>
+<script type="text/javascript" src="/js/zTree_v3/js/jquery.ztree.excheck.js"></script>
+<script>
+    let $2 = jQuery = layui.jquery;
+    let layer = layui.layer
+        , form = layui.form
+        , laypage = layui.laypage
+        , table = layui.table
+        , tree = layui.tree
+        , element = layui.element
+        , laydate = layui.laydate
+        , transfer = layui.transfer;
+
+    layui.use(['layer', 'form', 'laypage', 'table', 'element'], function () {
+        //搜索条件
+        let searchParam = {
+            startTime: null,
+            endTime: null,
+            flwType: null,
+            checkLastResult: null,
+            pageNum: 1,
+            pageSize: 10
+        };
+
+        $2(function () {
+            //填充数据字典select下拉框信息
+            setSelectData();
+        });
+
+        //初始化员工部门Tree
+        let initDeptUserTree = function () {
+            CoreUtil.sendAjax("/sys/user/deptUserTree", null, function (res) {
+                // console.log(res.data);
+                $.fn.zTree.init($("#treeMultiple"), zTreeSetting, res.data);
+                // 获取树对象
+                let treeObj = $.fn.zTree.getZTreeObj("treeMultiple");
+                /* 获取所有树节点 */
+                let nodes = treeObj.transformToArray(treeObj.getNodes());
+                // 展开除第一级之外的其他节点
+                for (let i = 0, length_1 = nodes.length; i < length_1; i++) {
+                    if (nodes[i].level == 0) {
+                        continue;
+                    }
+                    nodes[i].open = true;
+                }
+                //展开第一级节点
+                treeObj.expandNode(nodes[0], true);
+            }, "GET", false);
+        };
+
+        //监听部门树型选择框
+        $2(".operation_user input[name=checkUserName]").click(function () {
+            initDeptUserTree();
+            layer.open({
+                type: 1,
+                offset: '0px',
+                skin: 'layui-layer-molv',
+                title: "选择用户",
+                area: ['80%', '98%'],
+                shade: 0,
+                shadeClose: false,
+                content: jQuery("#treeMultiple"),
+                btn: ['确定', '取消'],
+                yes: function (index) {
+                    let treeObj = $.fn.zTree.getZTreeObj("treeMultiple");
+                    let nodes = treeObj.getCheckedNodes(true);//获取选中节点值
+                    if(nodes != null){
+                        if(nodes.length > 1){
+                            layer.msg("只能选择一个用户！");
+                        }
+                        else if(nodes.length == 1){
+                            if(nodes[0].type == 1){
+                                // console.log(nodes);
+                                $2("#currentCheckUserId").val(nodes[0].id);
+                                $2("#checkUserName").val(nodes[0].name);
+                                layer.close(index);
+                            }else{
+                                layer.msg("请选择用户！");
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        let zTreeSetting = {
+            view: {
+                fontCss: {
+                    color: "#203e82"
+                }
+            },
+            callback: {  //点击文字，将节点设置为选中
+                onClick: function (e, treeId, treeNode, clickFlag) {
+                    let zTree = $.fn.zTree.getZTreeObj("treeMultiple");
+                    zTree.checkNode(treeNode, !treeNode.checked, true);
+                }
+            },
+            check: {
+                enable: true,
+                chkStyle: "radio",
+                radioType: "all"
+            },
+            data: {
+                simpleData: {
+                    enable: true,
+                    idKey: "id", //节点数据中保存唯一标识的属性名称
+                    pIdKey: "pid", //节点数据中保存其父节点唯一标识的属性名称
+                    rootPId: 0 //根节点id
+                }
+            }
+        };
+
+        laydate.render({
+            elem: '#createTime'
+            , type: 'datetime'
+            , range: '~'
+            , done: function (value, date, endDate) {
+                if (value != null && value != undefined && value != "") {
+                    searchParam.startTime = value.split("~")[0];
+                    searchParam.endTime = value.split("~")[1];
+                } else {
+                    searchParam.startTime = null;
+                    searchParam.endTime = null;
+                }
+            }
+        });
+
+        //分页获取用户列表接口
+        CoreUtil.sendAjax("/flw/request/pageList", JSON.stringify(searchParam), function (res) {
+            laypageTable(res.data.totalRows, searchParam.pageNum);
+            if (res.data.list != null) {
+                loadTable(res.data.list);
+            }
+        }, "POST", false, function (res) {
+            layer.msg(res.msg);
+            let noAuthorityData = [];
+            loadTable(noAuthorityData);
+        });
+
+        //分页条
+        let laypageTable = function (count, currentPage) {
+            laypage.render({
+                elem: 'laypage'
+                , count: count
+                , limit: searchParam.pageSize
+                , layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip']
+                , curr: location.hash.replace('#!currentPage=', '') //获取起始页
+                , hash: 'currentPage' //自定义hash值
+                , limits: [10, 25, 50, 100, 300, 500, 2000]
+                , jump: function (obj, first) {
+                    if (!first) {
+                        searchParam.pageNum = obj.curr;
+                        searchParam.pageSize = obj.limit;
+                        CoreUtil.sendAjax("/flw/request/pageList", JSON.stringify(searchParam), function (res) {
+                            if (res.data.list != null) {
+                                loadTable(res.data.list);
+                                laypageTable(res.data.totalRows, searchParam.pageNum);
+                            }
+                        }, "POST", false, function (res) {
+                            layer.msg(res.msg);
+                            let noAuthorityData = [];
+                            loadTable(noAuthorityData);
+                        });
+                    }
+                }
+            });
+        };
+
+        //渲染table
+        let loadTable = function (data) {
+            // console.log(data);
+            table.render({
+                elem: '#user_table'
+                , cols: [
+                    [
+                        {type: 'checkbox', fixed: 'left'},
+                        {type: 'xuhao', fixed: 'left', title: '序号', width: 50, type: 'numbers'},
+                        {field: 'flwCode', title: '申请编号', width: 160, fixed: 'left'},
+                        {field: 'createTime', title: '申请时间', sort: true, width: 170},
+                        {field: 'flwTypeName', title: '申请类型', width: 140},
+                        {field: 'descStr', title: '申请描述', sort: false, width: 380},
+                        {field: 'currentCheckUserName', title: '审核人', width: 140},
+                        {
+                            field: 'checkLastResult', title: '审核状态', width: 100, templet: function (item) {
+                                if (item.checkLastResult == '0') {
+                                    return '<a class="layui-btn layui-btn-danger layui-btn-xs">审核不通过</a>';
+                                }else if (item.checkLastResult == '1') {
+                                    return '<a class="layui-btn layui-btn-xs">审核中</a>';
+                                }else if (item.checkLastResult == '2') {
+                                    return '<a class="layui-btn layui-btn-xs">审核通过</a>';
+                                }
+                            }
+                        },
+                        {width: 160, toolbar: "#tool", title: '操作', fixed: 'right'}
+                    ]
+                ]
+                , data: data
+                , loading: true
+                , even: true
+                , limit: data.length
+                , toolbar: '#toolbar'
+                , defaultToolbar: ['filter', 'print', 'exports', {
+                    title: '提示' //标题
+                    , layEvent: 'LAYTABLE_TIPS' //事件名，用于 toolbar 事件中使用
+                    , icon: 'layui-icon-tips' //图标类名
+                }]
+            });
+        };
+
+        //监听表格头部工具栏事件
+        table.on('toolbar(user_table)', function (obj) {
+            let data = obj.data;
+            switch (obj.event) {
+                case 'addNewUser':
+                    //重置表单数据
+                    $2("#userEditFilter")[0].reset();
+                    form.render();
+                    //打开弹框
+                    layer.open({
+                        //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                        type: 1,
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: "提交流程申请",
+                        area: ['80%', '90%'],
+                        content: $2("#edit-user-info") //引用的弹出层的页面层的方式加载修改界面表单
+                    });
+                    //初始化部门树型
+                    initTree("");
+                    break;
+                case 'LAYTABLE_TIPS':
+                    layer.msg("这是工具栏右侧自定义的一个图标按钮");
+                    break;
+            }
+        });
+
+        //监听行工具事件
+        table.on('tool(user_table)', function (obj) {
+            let data = obj.data;
+            if(obj.event == 'userInfoDetail'){
+                userInfoDetail(data.id);//查看用户详情
+            }
+        });
+
+        //显示审核详情
+        let userInfoDetail = function(pkId){
+            CoreUtil.sendAjax("/flw/getCheckList/" + pkId, null, function (res) {
+                // console.log(res);
+                let checkDataInfo = '';
+                if(res != null && res.data != null){
+                    let checkDataArray = res.data;
+                    if(checkDataArray.length > 0){
+                        for(let i=0; i<checkDataArray.length; i++){
+                            let checkResultStr = '';
+                            let checkInfo = checkDataArray[i];
+                            checkDataInfo += '<ul class="checkInfoClass">';
+                            checkDataInfo += '<li>审核人：' + checkInfo.userRealName + '</li>';
+                            //审核结果(0:审核不通过;1:审核中;2:审核通过;)
+                            if(checkInfo.checkResult == '0'){
+                                checkResultStr = '审核不通过';
+                            }else if(checkInfo.checkResult == '1'){
+                                checkResultStr = '审核中';
+                            }else if(checkInfo.checkResult == '2'){
+                                checkResultStr = '审核通过';
+                            }
+                            checkDataInfo += '<li>审核结果：' + checkResultStr + '</li>';
+                            if(checkInfo.checkOpinion == null){
+                                checkDataInfo += '<li>审核意见：' + '</li>';
+                            }else{
+                                checkDataInfo += '<li>审核意见：' + checkInfo.checkOpinion + '</li>';
+                            }
+                            if(checkInfo.checkTime == null){
+                                checkDataInfo += '<li>审核时间：' + '</li>';
+                            }else{
+                                checkDataInfo += '<li>审核时间：' + checkInfo.checkTime + '</li>';
+                            }
+                            checkDataInfo += '</ul>';
+                        }
+                    }
+                }
+                $2("#checkInfo").html(checkDataInfo);
+            }, "GET", false, function (res) {
+                // console.log(res);
+                layer.msg(res.msg);
+            });
+            layer.open({
+                //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                type: 1,
+                resize: false, //是否允许拉伸
+                maxmin: false, //最大最小化
+                title: "审核详情",
+                area: ['80%', '90%'],//宽，高
+                shadeClose: false, //点击弹层外区域关闭
+                content: $2("#userInfoDetailDiv")
+            });
+        };
+
+        //查询按钮点击事件
+        $2("#search").click(function () {
+            searchParam.flwType = $2("#queryFlwType").val();
+            searchParam.checkLastResult = $2("#checkLastResult").val();
+            searchParam.pageNum = 1;
+            CoreUtil.sendAjax("/flw/request/pageList", JSON.stringify(searchParam), function (res) {
+                laypageTable(res.data.totalRows, searchParam.pageNum);
+                if (res.data.list != null) {
+                    loadTable(res.data.list);
+                }
+            }, "POST", false, function (res) {
+                layer.msg(res.msg);
+                let noAuthorityData = [];
+                loadTable(noAuthorityData);
+            });
+        });
+
+        //监听提交-编辑/新增用户信息弹框
+        form.on('submit(edit-user-submit)', function (data) {
+            CoreUtil.sendAjax("/flw/request/addFlwRequest", JSON.stringify(data.field), function (res) {
+                layer.closeAll(); //疯狂模式，关闭所有层
+                layer.msg(res.msg);
+                $2(".layui-laypage-btn").click();
+            }, "POST", false, function (res) {
+                layer.msg(res.msg);
+            });
+            return false;
+        });
+
+        //请求部门树型数据
+        let initTree = function (id) {
+            let param = {deptId: id};
+            CoreUtil.sendAjax("/sys/dept/tree", param, function (res) {
+                loadDeptTree(res.data);
+            }, "GET", false, function (res) {
+                layer.msg(res.msg);
+                let noAuthorityData = [];
+                loadDeptTree(noAuthorityData);
+            });
+        };
+
+        //填充数据字典select下拉框信息
+        let setSelectData = function () {
+            CoreUtil.sendAjax("/sys/dic/getSelectDicByTypeCode", null, function (res) {
+                if(res != null && res.data != null && res.data.length > 0){
+                    $2.each(res.data, function(index, item){
+                        if('FLW_TYPE' == item.typeCode){
+                            $2("#queryFlwType").append(new Option("请选择申请类型", ""));
+                            if(item.dicInfo != null && item.dicInfo.length > 0){
+                                $2.each(item.dicInfo, function(index2, item2){
+                                    // console.log(item2.dicCode + "=" + item2.dicValue);
+                                    //往下拉菜单里添加元素
+                                    $2('#queryFlwType').append(new Option(item2.dicValue, item2.dicCode));
+                                });
+                            }else{
+                                $2("#queryFlwType").append(new Option("暂无数据", ""));
+                            }
+                            $2("#flwType").append(new Option("请选择申请类型", ""));
+                            if(item.dicInfo != null && item.dicInfo.length > 0){
+                                $2.each(item.dicInfo, function(index2, item2){
+                                    // console.log(item2.dicCode + "=" + item2.dicValue);
+                                    //往下拉菜单里添加元素
+                                    $2('#flwType').append(new Option(item2.dicValue, item2.dicCode));
+                                });
+                            }else{
+                                $2("#flwType").append(new Option("暂无数据", ""));
+                            }
+                        }
+                    });
+                    form.render("select");//菜单渲染 把内容加载进去
+                }else{
+                    layer.msg("数据字典信息无数据");
+                }
+            }, "GET", false, function (res) {
+                layer.msg(res.msg);
+            });
+        };
+
+        //渲染部门树型
+        let loadDeptTree = function (data) {
+            tree.render({
+                elem: '#deptTree'
+                , data: data
+                , onlyIconControl: true  //是否仅允许节点左侧图标控制展开收缩
+                , click: function (obj) {
+                    selectNode = obj;
+                }
+            });
+        };
+
+        //监听部门树型选择框
+        $2(".operation_user input[name=deptName]").click(function () {
+            layer.open({
+                type: 1,
+                offset: '1px',
+                skin: 'layui-layer-molv',
+                title: "选择部门",
+                area: ['40%', '100%'],
+                shade: 0,
+                shadeClose: false,
+                content: jQuery("#deptTree"),
+                btn: ['确定', '取消'],
+                yes: function (index) {
+                    if (selectNode.data != null) {
+                        console.log(selectNode.data);
+                        //选中回显
+                        $2(".operation_user input[name=deptId]").val(selectNode.data.id);
+                        $2(".operation_user input[name=deptName]").val(selectNode.data.title);
+                    }
+                    layer.close(index);
+                }
+            });
+        });
+
+    });
+</script>
+</html>

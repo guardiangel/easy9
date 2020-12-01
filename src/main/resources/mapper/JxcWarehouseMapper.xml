@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.colin.mapper.yw.JxcWarehouseMapper">
+
+  <resultMap id="BaseResultMap" type="org.colin.model.ro.JxcWarehouse">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="create_user" jdbcType="VARCHAR" property="createUser" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="update_user" jdbcType="VARCHAR" property="updateUser" />
+    <result column="wh_code" jdbcType="VARCHAR" property="whCode" />
+    <result column="wh_name" jdbcType="VARCHAR" property="whName" />
+    <result column="wh_address" jdbcType="VARCHAR" property="whAddress" />
+    <result column="wh_post" jdbcType="VARCHAR" property="whPost" />
+    <result column="wh_link_user" jdbcType="VARCHAR" property="whLinkUser" />
+    <result column="wh_link_phone" jdbcType="VARCHAR" property="whLinkPhone" />
+    <result column="wh_brief" jdbcType="VARCHAR" property="whBrief" />
+    <result column="wh_create_time" jdbcType="TIMESTAMP" property="whCreateTime" />
+    <result column="wh_use_time" jdbcType="TIMESTAMP" property="whUseTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, create_time, create_user, update_time, update_user, wh_code, wh_name, wh_address, 
+    wh_post, wh_link_user, wh_link_phone, wh_brief, wh_create_time, wh_use_time
+  </sql>
+
+  <!--查询所有仓库信息-->
+  <select id="getAllWareHouse" parameterType="org.colin.model.ro.JxcWarehouse" resultType="org.colin.model.vo.resp.WareHouseRespVO">
+        select
+        t1.id, t1.create_time, t1.create_user, t1.update_time, t1.update_user, t1.wh_code, t1.wh_name, t1.wh_address,
+        t1.wh_post, t1.wh_link_user, t1.wh_link_phone, t1.wh_brief, t1.wh_create_time, t1.wh_use_time,
+        t2.real_name as createUserName, t3.real_name as updateUserName
+        from jxc_warehouse t1
+        left join sys_user t2 on t1.create_user = t2.id
+        left join sys_user t3 on t1.update_user = t3.id
+        <where>
+          <if test="whName != null and whName != '' ">
+            AND t1.wh_name  = #{whName}
+          </if>
+        </where>
+        order by t1.update_time desc
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultType="org.colin.model.vo.resp.WareHouseRespVO">
+    select
+    t1.id, t1.create_time, t1.create_user, t1.update_time, t1.update_user, t1.wh_code, t1.wh_name, t1.wh_address,
+    t1.wh_post, t1.wh_link_user, t1.wh_link_phone, t1.wh_brief, t1.wh_create_time, t1.wh_use_time,
+    t2.real_name as createUserName, t3.real_name as updateUserName
+    from jxc_warehouse t1
+    left join sys_user t2 on t1.create_user = t2.id
+    left join sys_user t3 on t1.update_user = t3.id
+    where t1.id = #{id}
+  </select>
+  <!--根据仓库名称查询对应记录-->
+  <select id="selectByWhName" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from jxc_warehouse
+    where wh_name = #{whName}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from jxc_warehouse
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="org.colin.model.ro.JxcWarehouse">
+    insert into jxc_warehouse (id, create_time, create_user, 
+      update_time, update_user, wh_code, 
+      wh_name, wh_address, wh_post, 
+      wh_link_user, wh_link_phone, wh_brief, 
+      wh_create_time, wh_use_time)
+    values (#{id,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{createUser,jdbcType=VARCHAR}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{updateUser,jdbcType=VARCHAR}, #{whCode,jdbcType=VARCHAR}, 
+      #{whName,jdbcType=VARCHAR}, #{whAddress,jdbcType=VARCHAR}, #{whPost,jdbcType=VARCHAR}, 
+      #{whLinkUser,jdbcType=VARCHAR}, #{whLinkPhone,jdbcType=VARCHAR}, #{whBrief,jdbcType=VARCHAR}, 
+      #{whCreateTime,jdbcType=TIMESTAMP}, #{whUseTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="org.colin.model.ro.JxcWarehouse">
+    insert into jxc_warehouse
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="createUser != null">
+        create_user,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="updateUser != null">
+        update_user,
+      </if>
+      <if test="whCode != null">
+        wh_code,
+      </if>
+      <if test="whName != null">
+        wh_name,
+      </if>
+      <if test="whAddress != null">
+        wh_address,
+      </if>
+      <if test="whPost != null">
+        wh_post,
+      </if>
+      <if test="whLinkUser != null">
+        wh_link_user,
+      </if>
+      <if test="whLinkPhone != null">
+        wh_link_phone,
+      </if>
+      <if test="whBrief != null">
+        wh_brief,
+      </if>
+      <if test="whCreateTime != null">
+        wh_create_time,
+      </if>
+      <if test="whUseTime != null">
+        wh_use_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createUser != null">
+        #{createUser,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateUser != null">
+        #{updateUser,jdbcType=VARCHAR},
+      </if>
+      <if test="whCode != null">
+        #{whCode,jdbcType=VARCHAR},
+      </if>
+      <if test="whName != null">
+        #{whName,jdbcType=VARCHAR},
+      </if>
+      <if test="whAddress != null">
+        #{whAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="whPost != null">
+        #{whPost,jdbcType=VARCHAR},
+      </if>
+      <if test="whLinkUser != null">
+        #{whLinkUser,jdbcType=VARCHAR},
+      </if>
+      <if test="whLinkPhone != null">
+        #{whLinkPhone,jdbcType=VARCHAR},
+      </if>
+      <if test="whBrief != null">
+        #{whBrief,jdbcType=VARCHAR},
+      </if>
+      <if test="whCreateTime != null">
+        #{whCreateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="whUseTime != null">
+        #{whUseTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="org.colin.model.ro.JxcWarehouse">
+    update jxc_warehouse
+    <set>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createUser != null">
+        create_user = #{createUser,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateUser != null">
+        update_user = #{updateUser,jdbcType=VARCHAR},
+      </if>
+      <if test="whCode != null">
+        wh_code = #{whCode,jdbcType=VARCHAR},
+      </if>
+      <if test="whName != null">
+        wh_name = #{whName,jdbcType=VARCHAR},
+      </if>
+      <if test="whAddress != null">
+        wh_address = #{whAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="whPost != null">
+        wh_post = #{whPost,jdbcType=VARCHAR},
+      </if>
+      <if test="whLinkUser != null">
+        wh_link_user = #{whLinkUser,jdbcType=VARCHAR},
+      </if>
+      <if test="whLinkPhone != null">
+        wh_link_phone = #{whLinkPhone,jdbcType=VARCHAR},
+      </if>
+      <if test="whBrief != null">
+        wh_brief = #{whBrief,jdbcType=VARCHAR},
+      </if>
+      <if test="whCreateTime != null">
+        wh_create_time = #{whCreateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="whUseTime != null">
+        wh_use_time = #{whUseTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.colin.model.ro.JxcWarehouse">
+    update jxc_warehouse
+    set create_time = #{createTime,jdbcType=TIMESTAMP},
+      create_user = #{createUser,jdbcType=VARCHAR},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      update_user = #{updateUser,jdbcType=VARCHAR},
+      wh_code = #{whCode,jdbcType=VARCHAR},
+      wh_name = #{whName,jdbcType=VARCHAR},
+      wh_address = #{whAddress,jdbcType=VARCHAR},
+      wh_post = #{whPost,jdbcType=VARCHAR},
+      wh_link_user = #{whLinkUser,jdbcType=VARCHAR},
+      wh_link_phone = #{whLinkPhone,jdbcType=VARCHAR},
+      wh_brief = #{whBrief,jdbcType=VARCHAR},
+      wh_create_time = #{whCreateTime,jdbcType=TIMESTAMP},
+      wh_use_time = #{whUseTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro"
+>
+<head>
+    <meta charset="UTF-8">
+    <title>社区管理页面</title>
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+</head>
+<body>
+<div id="searchParam">
+    <div class="layui-form-item" shiro:hasPermission="buy:community:list">
+        <div class="layui-input-inline">
+            <input type="text" id="comName" class="layui-input" autocomplete="off" placeholder="请输入社区名称">
+        </div>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" id="createTime" placeholder="创建时间">
+        </div>
+        <div class="layui-input-inline ">
+            <button class="layui-btn" id="search">查询</button>
+        </div>
+    </div>
+
+</div>
+<table class="layui-hide" id="obj_table" lay-filter="obj_table"></table>
+<div id="laypage" class="layui-laypage-btn"></div>
+
+<div class="layui-row operation_object" id="object-content" style="display:none;">
+    <form class="layui-form layui-form-pane" action="" style="margin-top: 10px;margin-left: 10px;margin-right: 10px;" lay-filter="objectEditFilter" autocomplete="off">
+        <input name="id" hidden/>
+        <div class="layui-form-item">
+            <label class="layui-form-label">社区名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="comName" placeholder="请输入社区名称" lay-verify="required" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">社区联系人</label>
+            <div class="layui-input-block">
+                <input type="text" name="comLinkUser" placeholder="请输入社区联系人" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-form-label ">联系人电话</div>
+            <div class="layui-input-block">
+                <input type="text" name="comLinkPhone" placeholder="请输入联系人电话" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-form-label ">序号</div>
+            <div class="layui-input-block">
+                <input type="text" name="orderNum" placeholder="请输入序号" lay-verify="required" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-block">
+                <input type="checkbox" value="" checked="" name="comState" lay-skin="switch" lay-filter="switch-status" lay-text="正常|禁用"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div style="text-align: center;">
+                <button type="submit" class="layui-btn" lay-submit="" lay-filter="edit-object-submit">保存</button>
+                <button class="layui-btn layui-btn-primary" id="btn_cancel">返回</button>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-group">
+        <button type="button" class="layui-btn layui-btn-sm" lay-event="addObject" shiro:hasPermission="buy:community:add">
+            <i class="layui-icon">&#xe608;</i> 新增社区
+        </button>
+    </div>
+</script>
+<script type="text/html" id="tool">
+    <a class="layui-btn layui-btn-xs" lay-event="edit" shiro:hasPermission="buy:community:update">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" shiro:hasPermission="buy:community:deleted">删除</a>
+</script>
+<script src="/layui/layui.all.js"></script>
+<script src="/js/core.util.js"></script>
+<script>
+    let table = layui.table;
+    let laypage = layui.laypage;
+    let form = layui.form;
+    let layer = layui.layer;
+    let $ = jQuery = layui.jquery;
+    let laydate = layui.laydate;
+    layui.use(['table', 'laypage', 'layer', 'laydate'], function () {
+        let searchParam = {
+            comName: null,
+            startTime: null,
+            endTime: null,
+            pageNum: 1,
+            pageSize: 10
+        };
+        CoreUtil.sendAjax("/buy/communityAll", JSON.stringify(searchParam), function (res) {
+            //初始化分页器
+            laypageTable(res.data.totalRows, searchParam.pageNum);
+            //初始化渲染数据
+            if (res.data.list != null) {
+                loadTable(res.data.list);
+            }
+        }, "POST", false, function (res) {
+            layer.msg("抱歉！您暂无获取列表的权限");
+            let noAuthorityData = [];
+            loadTable(noAuthorityData);
+        });
+        //渲染分页插件
+        let laypageTable = function (count, currentPage) {
+            laypage.render({
+                elem: 'laypage'
+                , count: count
+                , limit: searchParam.pageSize
+                , layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip']
+                , curr: location.hash.replace('#!currentPage=', '') //获取起始页
+                , hash: 'currentPage' //自定义hash值
+                , limits: [10, 25, 50, 100, 300, 500, 2000]
+                , jump: function (obj, first) {
+                    if (!first) {
+                        searchParam.pageNum = obj.curr;
+                        searchParam.pageSize = obj.limit;
+                        CoreUtil.sendAjax("/buy/communityAll", JSON.stringify(searchParam), function (res) {
+                            if (res.data.list != null) {
+                                loadTable(res.data.list);
+                                laypageTable(res.data.totalRows, searchParam.pageNum);
+                            }
+                        }, "POST", false, function (res) {
+                            layer.msg("抱歉！您暂无获取列表的权限");
+                            let noAuthorityData = [];
+                            loadTable(noAuthorityData);
+                        });
+                    }
+                }
+            });
+        };
+
+        //渲染table
+        let loadTable = function (data) {
+            table.render({
+                elem: '#obj_table'
+                , cols: [
+                    [
+                        {type: 'xuhao', fixed: 'left', title: '序号', width: 50, type: 'numbers'},
+                        {field: 'comName', title: '社区名称', width: 300, sort: false},
+                        {field: 'comLinkUser', title: '社区联系人', width: 120},
+                        {field: 'comLinkPhone', title: '社区联系人电话', width: 300},
+                        {field: 'orderNum', title: '排序', width: 240},
+                        {field: 'createTime', title: '创建时间', sort: true, minWidth: 100},
+                        {
+                            field: 'comState', title: '状态', width: 100, templet: function (item) {
+                                if (item.comState === 1) {
+                                    return '<input type="checkbox" lay-skin="switch" lay-text="正常|禁用" checked disabled>';
+                                }
+                                if (item.comState === 0) {
+                                    return '<input type="checkbox" lay-skin="switch" lay-text="正常|禁用" disabled>';
+                                }
+                            }
+                        },
+                        {width: 150, toolbar: "#tool", title: '操作'}
+                    ]
+                ]
+                , data: data
+                , even: true
+                , limit: data.length
+                , toolbar: '#toolbar'
+            });
+        };
+
+        //监听状态开关
+        form.on('switch(switch-status)', function () {
+            $(".operation_object input[name=comState]").attr('type', 'hidden').val(this.checked ? 1 : 0);
+        });
+
+        //日期范围
+        laydate.render({
+            elem: '#createTime'
+            , type: 'datetime'
+            , range: '~'
+            , done: function (value, date, endDate) {
+                if (value != null && value != undefined && value != "") {
+                    searchParam.startTime = value.split("~")[0];
+                    searchParam.endTime = value.split("~")[1];
+                } else {
+                    //清空时间的时候要清空以前选择的日期
+                    searchParam.startTime = null;
+                    searchParam.endTime = null;
+                }
+            }
+        });
+
+        //执行查询
+        $("#search").click(function () {
+            searchParam.comName = $("#comName").val();
+            searchParam.pageNum = 1;
+            CoreUtil.sendAjax("/buy/communityAll", JSON.stringify(searchParam), function (res) {
+                //初始化分页器
+                laypageTable(res.data.totalRows, searchParam.pageNum);
+                //初始化渲染数据
+                if (res.data.list != null) {
+                    loadTable(res.data.list);
+                }
+            }, "POST", false, function (res) {
+                layer.msg("抱歉！您暂无获取列表的权限");
+                let noAuthorityData = [];
+                loadTable(noAuthorityData);
+            });
+        });
+
+        //监听表格头部工具栏事件
+        table.on('toolbar(obj_table)', function (obj) {
+            let data = obj.data;
+            switch (obj.event) {
+                case 'addObject':
+                    form.val("objectEditFilter", {
+                        "comName": ''
+                        , "id": ''
+                        , "comLinkUser": ''
+                        , "comLinkPhone": ''
+                        , "orderNum": ''
+                    });
+                    layer.open({
+                        //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                        type: 1,
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: "新增社区信息",
+                        area: ['650px'],
+                        content: $("#object-content") //引用的弹出层的页面层的方式加载修改界面表单
+                    });
+                    //初始化部门树型
+                    initTree("");
+                    break;
+            }
+        });
+
+        //监听提交-编辑/新增信息弹框
+        form.on('submit(edit-object-submit)', function (data) {
+            if (data.field.id === undefined || data.field.id === null || data.field.id === "") {
+                CoreUtil.sendAjax("/buy/community", JSON.stringify(data.field), function (res) {
+                    layer.closeAll(); //疯狂模式，关闭所有层
+                    layer.msg(res.msg);
+                    $(".layui-laypage-btn").click();
+                }, "POST", false, function (res) {
+                    layer.msg("抱歉！您暂无新增权限");
+                });
+            } else {
+                CoreUtil.sendAjax("/buy/community", JSON.stringify(data.field), function (res) {
+                    layer.closeAll(); //疯狂模式，关闭所有层
+                    layer.msg(res.msg);
+                    $(".layui-laypage-btn").click();
+                }, "PUT", false, function (res) {
+                    layer.msg("抱歉！您暂无编辑权限");
+                });
+            }
+            return false;
+        });
+
+        //监听行工具事件
+        table.on('tool(obj_table)', function (obj) {
+            let data = obj.data;
+            switch (obj.event) {
+                case 'del':
+                    tipDialog(data.id);
+                    break;
+                case 'edit':
+                    layer.open({
+                        //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                        type: 1,
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: "修改用户信息",
+                        area: ['650px'],
+                        content: $("#object-content") //引用的弹出层的页面层的方式加载修改界面表单
+                    });
+                    //回显数据，填充表格
+                    setFormValue(obj);
+                    break;
+            }
+        });
+
+        //回显数据，填充表格
+        function setFormValue(obj) {
+            let data = obj.data;
+            form.val("objectEditFilter", {
+                "comName": data.comName
+                , "id": data.id
+                , "comLinkUser": data.comLinkUser
+                , "comLinkPhone": data.comLinkPhone
+                , "orderNum": data.orderNum
+                , "comState": data.comState
+            });
+        }
+
+        //删除前确认对话框
+        let tipDialog = function (id) {
+            layer.open({
+                content: '确定要删除么',
+                yes: function (index, layero) {
+                    layer.close(index); //如果设定了yes回调，需进行手工关闭
+                    CoreUtil.sendAjax("/buy/community/" + id, null, function (res) {
+                        layer.msg(res.msg);
+                        $(".layui-laypage-btn").click();
+                    }, "DELETE", false, function (res) {
+                        layer.msg("抱歉！您暂无删除权限");
+                    });
+                }
+            });
+        }
+    });
+</script>
+</html>

@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset='UTF-8'>
+    <!--强制让文档与设备的宽度保持1：1,对页面设置不能进行缩放-->
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"/>
+    <!--必须联网才可以访问,禁止浏览器从本地计算机的缓存中访问页面内容-->
+    <meta http-equiv="Cache-Control" name="no-store"/>
+    <!--页面描述-->
+    <meta name="description" content="Easy9云平台"/>
+    <!--页面关键词-->
+    <meta name="keywords" content="Easy9云平台"/>
+    <!--网页作者-->
+    <meta name="author" content="name, 1134135987@qq.com"/>
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/css/admin.css" media="all">
+    <!--引入我们在https://www.iconfont.cn平台生成的图标样式库-->
+    <link rel="stylesheet" href="/layui/css/modules/layui-icon-extend/iconfont.css" media="all">
+
+    <script src="/js/jquery-2.0.3.js"></script>
+    <script src="/layui/layui.all.js"></script>
+    <script src="/js/core.util.js"></script>
+    <script src="/js/echarts/echarts.min.js"></script>
+    <title>登录成功首页</title>
+    <style>
+        .main-div ol {
+            margin-left: 13px;
+        }
+
+        .main-div ol li {
+            color: #666;
+            font-size: 14px;
+            line-height: 22px;
+            margin-top: 8px;
+        }
+
+        .layui-timeline-item {
+            margin-left: 60px;
+        }
+
+        .layui-timeline-item li {
+            color: #666;
+        }
+
+        .cardTop{
+            border-radius: 10px;
+        }
+
+        .e-chart-style {
+            width: 100%;
+            height: 260px;
+        }
+    </style>
+</head>
+<body>
+<div class="layui-tab layui-tab-brief" lay-filter="mainTab">
+    <ol class="layui-tab-title">
+        <li class="layui-this">数据看版</li>
+        <li>平台介绍</li>
+        <li>公司规章制度</li>
+        <li>每日大事记</li>
+    </ol>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show">
+            <div class="layui-fluid">
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-sm6 layui-col-md3">
+                        <div class="layui-card cardTop" style="background-color: #cde40a">
+                            <div class="layui-card-header">
+                                社区用户数
+                                <span class="layui-badge layui-bg-blue layuiadmin-badge">总计</span>
+                            </div>
+                            <div class="layui-card-body layuiadmin-card-list">
+                                <p class="layuiadmin-big-font">
+                                    <span id="bbsUserCount"></span>
+                                </p>
+                                <p>
+                                    &nbsp;
+                                    <span class="layuiadmin-span-color">
+                                        男性：<span id="bbsUserCountNan"></span>；
+                                        女性：<span id="bbsUserCountNv"></span>
+                                    </span>
+<!--                                    总计访问量
+                                    <span class="layuiadmin-span-color">8.8亿 <i class="layui-inline layui-icon layui-icon-flag"></i></span>-->
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-sm6 layui-col-md3">
+                        <div class="layui-card cardTop" style="background-color: #32ecd3">
+                            <div class="layui-card-header">
+                                社区发帖量
+                                <span class="layui-badge layui-bg-cyan layuiadmin-badge">总计</span>
+                            </div>
+                            <div class="layui-card-body layuiadmin-card-list">
+                                <p class="layuiadmin-big-font">
+                                    <span id="postCount"></span>
+                                </p>
+                                <p>
+                                    &nbsp;
+                                    <span class="layuiadmin-span-color">
+                                        审核通过：<span id="postCountPass"></span>；
+                                        审核中：<span id="postCountChecking"></span>
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-sm6 layui-col-md3">
+                        <div class="layui-card cardTop" style="background-color: #a8b7b2">
+                            <div class="layui-card-header">
+                                社区评论量
+                                <span class="layui-badge layui-bg-green layuiadmin-badge">总计</span>
+                            </div>
+                            <div class="layui-card-body layuiadmin-card-list">
+                                <p class="layuiadmin-big-font">
+                                    <span id="replyCount"></span>
+                                </p>
+                                <p>
+                                    &nbsp;
+                                    <span class="layuiadmin-span-color">
+                                        审核通过：<span id="replyCountPass"></span>；
+                                        审核中：<span id="replyCountChecking"></span>
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-sm6 layui-col-md3">
+                        <div class="layui-card cardTop" style="background-color: #61a0a8">
+                            <div class="layui-card-header">
+                                活跃用户
+                                <span class="layui-badge layui-bg-orange layuiadmin-badge">月</span>
+                            </div>
+                            <div class="layui-card-body layuiadmin-card-list">
+
+                                <p class="layuiadmin-big-font">66,666</p>
+                                <p>
+                                    最近一个月
+                                    <span class="layuiadmin-span-color">15% <i class="layui-inline layui-icon layui-icon-user"></i></span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="layui-col-sm12 layui-col-md8">
+                        <div class="layui-row layui-col-space15">
+                            <div class="layui-col-md12">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">
+                                        数据概览
+                                    </div>
+                                    <div class="layui-card-body layui-text layadmin-text">
+                                        <div class="e-chart-style" id="mychart1"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-row layui-col-space15">
+                            <div class="layui-col-md6">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">
+                                        联系我们
+                                    </div>
+                                    <div class="layui-card-body layui-text">
+                                        <table class="layui-table">
+                                            <colgroup>
+                                                <col width="100">
+                                                <col>
+                                            </colgroup>
+                                            <tbody>
+                                            <tr>
+                                                <td>作者</td>
+                                                <td>
+                                                    <p style="padding-left: 15px;">吴大胖</p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>版本</td>
+                                                <td>
+                                                    <p style="padding-left: 15px;">Easy9前后端分离版</p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                              <td>官方网站</td>
+                                              <td>
+                                               <a href="www.colin.life:8000/login" target="_blank" style="padding-left: 15px;">Easy9云平台</a>
+                                              </td>
+                                            </tr>
+                                            <tr>
+                                                <td>QQ</td>
+                                                <td>
+                                                    <p style="padding-left: 15px;">1134135987</p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>邮箱</td>
+                                                <td style="padding-bottom: 0;">
+                                                    <p style="padding-left: 15px;">1134135987@qq.com</p>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md6">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">
+                                        捐赠
+                                    </div>
+                                    <div class="layui-card-body layui-text">
+                                        <div class="layui-row layui-col-space15">
+                                            <div class="layui-col-md6">
+                                                <p style="text-align: center;">微信扫一扫捐赠</p>
+                                                <img alt="" src="/images/weixin_money.jpg" style="width: 100%">
+                                            </div>
+                                            <div class="layui-col-md6">
+                                                <p style="text-align: center;">支付宝扫一扫捐赠</p>
+                                                <img alt="" src="/images/zhifubao_weixin_money.jpg" style="width: 100%">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <blockquote class="layui-elem-quote">请作者喝瓶可乐</blockquote>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-sm12 layui-col-md4">
+                        <div class="layui-card">
+                            <div class="layui-card-header">
+                                用户归属地访问次数
+                            </div>
+                            <div class="layui-card-body">
+                                <span id="ipAddressHtml"></span>
+                                <!--<table class="layui-table">
+                                    <colgroup>
+                                        <col width="100">
+                                        <col>
+                                    </colgroup>
+                                    <tbody>
+                                    <tr>
+                                        <td>作者</td>
+                                        <td>
+                                            <p style="padding-left: 15px;">吴大胖</p>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>-->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-tab-item">
+            <div style="margin-top: 20px;text-align: center;font-size: 30px;margin-right: 30px;">
+                <img src="/images/system_ico.png"/>
+                <span id="sysNameId"></span>
+            </div>
+            <div style="padding: 20px; background-color: #F2F2F2;">
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md6">
+                        <div class="layui-card">
+                            <div class="layui-card-body">
+                                <div class="main-div">
+                                    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+                                        <legend>系统功能</legend>
+                                    </fieldset>
+                                    <ol>
+                                        <li>个人中心：流程申请(各种请假申请，其他申请，都在这里申请)、审核中心(审核各种申请)、个人信息。</li>
+                                        <li>进销存管理：包含仓库管理、商品管理、库存管理、入库管理、出库管理。</li>
+                                        <li>用户管理：用户是系统操作者，该功能主要完成系统用户配置。</li>
+                                        <li>部门管理：配置系统组织机构（公司、部门、小组），树结构展现。</li>
+                                        <li>菜单管理：配置系统菜单，操作权限，按钮权限标识等，权限细粒度到按钮。</li>
+                                        <li>角色管理：角色菜单权限分配、设置角色按机构进行数据范围权限划分。</li>
+                                        <li>薪资管理：管理所有用户的薪资详情，省掉工资条，直接邮件发送工资条到员工邮箱，方便快捷。</li>
+                                        <li>信息发布：可以发布公司规章制度、公司每日大事记等信息。</li>
+                                        <li>接口管理：根据业务代码自动生成相关的API接口文档。</li>
+                                        <li>SQL监控：对系统使用的SQL进行监控，可快速查询运行效率。</li>
+                                        <li>日志管理：对用户的操作进行记录。</li>
+                                        <li>聊天室：系统所有用户可在一起进行畅聊，不受任何人监听，安全可靠。</li>
+                                        <li>系统消息：可发送系统消息给指定的用户；也可以广播消息，用户实时收到消息并弹出框提示。</li>
+                                        <li>数据库：可查看数据库所有表结构字段。</li>
+                                        <li>数据字典：系统数据字典配置，灵活便捷。</li>
+                                        <li>统计管理：用户信息统计(各部门、各角色、各工资段、各性别人数统计)。</li>
+                                        <li>意见反馈：系统用户可以提交意见反馈，系统管理员或领导可以聆听员工的心声。</li>
+                                    </ol>
+                                    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+                                        <legend>系统技术</legend>
+                                    </fieldset>
+                                    <ol>
+                                        <li>核心框架：SpringBoot 2.1.6</li>
+                                        <li>安全框架：Apache Shiro 1.4</li>
+                                        <li>持久层框架：MyBatis 3.4.6</li>
+                                        <li>定时器：Schedule 3.1</li>
+                                        <li>数据库连接池：Druid 1.1</li>
+                                        <li>日志管理：Slf4j、Log4j</li>
+                                        <li>页面交互：Layui 2.5.5</li>
+                                        <li>消息队列：RabbitMQ</li>
+                                        <li>即时通讯：WebSocket</li>
+                                    </ol>
+                                    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+                                        <legend>系统特点</legend>
+                                    </fieldset>
+                                    <ol>
+                                        <li>灵活的权限控制，可控制到页面或按钮，满足绝大部分的权限需求</li>
+                                        <li>支持分布式部署，JWT无状态身份认证。</li>
+                                        <li>友好的代码结构及注释，便于阅读及二次开发</li>
+                                        <li>页面交互使用thymeleaf+layui ，极大的提高了开发效率。</li>
+                                        <li>引入swagger文档支持，方便编写API接口文档。</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-md6">
+                        <div class="layui-card">
+                            <div class="layui-card-body">
+                                <div class="main-div">
+                                    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+                                        <legend>
+                                            <span style="color: red;font-size: 19px;">
+                                                北方社区(属于我们自己的社区，欢迎扫码加入)
+                                            </span>
+                                        </legend>
+                                    </fieldset>
+                                    <img src="/images/bfsq.png" style="width: 100px;height: 100px;margin-left: 55px;">
+                                </div>
+                                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+                                    <legend>系统更新记录</legend>
+                                </fieldset>
+                                <ol class="layui-timeline">
+                                    <li class="layui-timeline-item">
+                                        <i class="layui-icon layui-timeline-axis"></i>
+                                        <div class="layui-timeline-content layui-text">
+                                            <h3 class="layui-timeline-title">2020年09月22日</h3>
+                                            <ol>
+                                                <li>新增财务管理-财务报表</li>
+                                            </ol>
+                                        </div>
+                                    </li>
+                                    <li class="layui-timeline-item">
+                                        <i class="layui-icon layui-timeline-axis"></i>
+                                        <div class="layui-timeline-content layui-text">
+                                            <h3 class="layui-timeline-title">2020年09月17日</h3>
+                                            <ol>
+                                                <li>新增聊天室模块(可群聊、可点对点聊)</li>
+                                            </ol>
+                                        </div>
+                                    </li>
+                                    <li class="layui-timeline-item">
+                                        <i class="layui-icon layui-timeline-axis"></i>
+                                        <div class="layui-timeline-content layui-text">
+                                            <h3 class="layui-timeline-title">2020年08月25日</h3>
+                                            <ol>
+                                                <li>新增进销存管理模块</li>
+                                            </ol>
+                                        </div>
+                                    </li>
+                                    <li class="layui-timeline-item">
+                                        <i class="layui-icon layui-timeline-axis"></i>
+                                        <div class="layui-timeline-content layui-text">
+                                            <h3 class="layui-timeline-title">2020年08月12日</h3>
+                                            <ol>
+                                                <li>新增信息发布功能</li>
+                                                <li>新增系统参数功能</li>
+                                            </ol>
+                                        </div>
+                                    </li>
+                                    <li class="layui-timeline-item">
+                                        <i class="layui-icon layui-timeline-axis"></i>
+                                        <div class="layui-timeline-content layui-text">
+                                            <h3 class="layui-timeline-title">2020年08月09日</h3>
+                                            <ol>
+                                                <li>新增流程申请</li>
+                                                <li>新增审核中心</li>
+                                            </ol>
+                                        </div>
+                                    </li>
+                                    <li class="layui-timeline-item">
+                                        <i class="layui-icon layui-timeline-axis"></i>
+                                        <div class="layui-timeline-content layui-text">
+                                            <h3 class="layui-timeline-title">2020年07月28日</h3>
+                                            <ol>
+                                                <li>新增数据字典菜单</li>
+                                            </ol>
+                                        </div>
+                                    </li>
+                                    <li class="layui-timeline-item">
+                                        <i class="layui-icon layui-timeline-axis"></i>
+                                        <div class="layui-timeline-content layui-text">
+                                            <h3 class="layui-timeline-title">2020年07月21日</h3>
+                                            <ol>
+                                                <li>新增用户信息统计菜单</li>
+                                            </ol>
+                                        </div>
+                                    </li>
+                                    <li class="layui-timeline-item">
+                                        <i class="layui-icon layui-timeline-axis"></i>
+                                        <div class="layui-timeline-content layui-text">
+                                            <h3 class="layui-timeline-title">2020年07月15日</h3>
+                                            <ol>
+                                                <li>新增北方社区APP后台功能</li>
+                                                <li>新增社区助手APP后台功能</li>
+                                                <li>新增薪资管理菜单</li>
+                                                <li>新增意见反馈菜单</li>
+                                                <li>新增修改密码功能</li>
+                                            </ol>
+                                        </div>
+                                    </li>
+                                    <li class="layui-timeline-item">
+                                        <i class="layui-icon layui-timeline-axis"></i>
+                                        <div class="layui-timeline-content layui-text">
+                                            <h3 class="layui-timeline-title">2020年05月20日</h3>
+                                            <ol>
+                                                <li>实现系统消息功能</li>
+                                                <li>实现消息广播功能</li>
+                                            </ol>
+                                        </div>
+                                    </li>
+                                    <li class="layui-timeline-item">
+                                        <i class="layui-icon layui-timeline-axis"></i>
+                                        <div class="layui-timeline-content layui-text">
+                                            <h3 class="layui-timeline-title">2020年05月18日</h3>
+                                            <ol>
+                                                <li>实现站内所有用户群聊功能</li>
+                                            </ol>
+                                        </div>
+                                    </li>
+                                    <li class="layui-timeline-item">
+                                        <i class="layui-icon layui-timeline-axis"></i>
+                                        <div class="layui-timeline-content layui-text">
+                                            <h3 class="layui-timeline-title">2020年03月04日</h3>
+                                            <ol>
+                                                <li>主页格局变化，显示为Tab页方式</li>
+                                                <li>系统图标变更</li>
+                                            </ol>
+                                        </div>
+                                    </li>
+                                    <li class="layui-timeline-item">
+                                        <i class="layui-icon layui-timeline-axis"></i>
+                                        <div class="layui-timeline-content layui-text">
+                                            <h3 class="layui-timeline-title">2020年03月03日</h3>
+                                            <ol>
+                                                <li>新增登录日志管理菜单(支持IP查询归属地)</li>
+                                                <li>支持用户上传大头照</li>
+                                                <li>支持菜单目录自定义图标</li>
+                                            </ol>
+                                        </div>
+                                    </li>
+                                    <li class="layui-timeline-item">
+                                        <i class="layui-icon layui-timeline-axis"></i>
+                                        <div class="layui-timeline-content layui-text">
+                                            <h3 class="layui-timeline-title">2020年02月29日</h3>
+                                            <ol>
+                                                <li>新增日志管理菜单</li>
+                                                <li>新增接口管理菜单</li>
+                                            </ol>
+                                        </div>
+                                    </li>
+                                    <li class="layui-timeline-item">
+                                        <i class="layui-icon layui-timeline-axis"></i>
+                                        <div class="layui-timeline-content layui-text">
+                                            <h3 class="layui-timeline-title">2020年02月28日</h3>
+                                            <ol>
+                                                <li>Easy9平台正式发布</li>
+                                            </ol>
+                                        </div>
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-tab-item">
+            <div style="margin-left: 15px;margin-top: 15px;margin-right: 15px;letter-spacing: 5px;">
+                <span id="companyRulesId"></span>
+            </div>
+            <!--天气预报-->
+<!--            <IFRAME ID='ifm2' WIDTH='100%' HEIGHT='1700px' ALIGN='CENTER' MARGINWIDTH='0' MARGINHEIGHT='0' HSPACE='0' VSPACE='0' FRAMEBORDER='0' SCROLLING='NO' SRC='http://weather.qq.com/inc/ss258.htm'></IFRAME>-->
+        </div>
+        <div class="layui-tab-item">
+            <span id="dayBigThing"></span>
+        </div>
+    </div>
+</div>
+
+</body>
+
+<script>
+    let $ = jQuery = layui.jquery;
+    var myChart1 = echarts.init(document.getElementById('mychart1'));
+
+    $(function () {
+        //获取平台名称
+        CoreUtil.sendAjax("/config/queryByKey/sys_name", null, function (res) {
+            // console.log(res);
+            if(res != null && res.data != null){
+                $("#sysNameId").html(res.data.sysValue);
+                layer.msg(res.data.xljt, {
+                    icon: 6,  //1:对勾;2:叉叉;3:问号;4:一把锁;5:不开心表情;6:开心表情;7:感叹号;
+                    time: 8000,  //如果不配置，默认是3秒关闭
+                    shade: 0
+                },function(){
+                    // 回调函数
+                });
+            }
+        }, "GET", false, function (res) {
+            layer.msg(res.msg);
+        });
+
+        //公司规章制度
+        CoreUtil.sendAjax("/notice/queryByType/1001", null, function (res) {
+            // console.log(res);
+            if(res != null && res.data != null){
+                $("#companyRulesId").html(res.data.noticeContent);
+            }
+        }, "GET", false, function (res) {
+            layer.msg(res.msg);
+        });
+
+        //每日大事记
+        CoreUtil.sendAjax("/notice/queryByType/1002", null, function (res) {
+            // console.log(res);
+            if(res != null && res.data != null){
+                $("#dayBigThing").html(res.data.noticeContent);
+            }
+        }, "GET", false, function (res) {
+            layer.msg(res.msg);
+        });
+
+        //数据看板
+        CoreUtil.sendAjax("/sys/getMainInfo", null, function (res) {
+            // console.log(res);
+            if(res != null && res.data != null){
+                $("#bbsUserCount").html(res.data.bbsUserCount);
+                $("#bbsUserCountNan").html(res.data.bbsUserCountNan);
+                $("#bbsUserCountNv").html(res.data.bbsUserCountNv);
+                $("#postCount").html(res.data.postCount);
+                $("#postCountChecking").html(res.data.postCountChecking);
+                $("#postCountPass").html(res.data.postCountPass);
+                $("#replyCount").html(res.data.replyCount);
+                $("#replyCountChecking").html(res.data.replyCountChecking);
+                $("#replyCountPass").html(res.data.replyCountPass);
+            }
+        }, "GET", false, function (res) {
+            layer.msg(res.msg);
+        });
+
+        //访问者归属地
+        CoreUtil.sendAjax("/sys/getIpAddressInfo", null, function (res) {
+            // console.log(res);
+            // console.log(res.data);
+            if(res != null && res.data != null){
+                let dataArray = res.data;
+                // console.log(dataArray);
+                let htmlStr = '';
+                htmlStr += '<table class="layui-table">';
+                htmlStr += '<colgroup>';
+                htmlStr += '<col width="190">';
+                htmlStr += '<col width="150">';
+                htmlStr += '</colgroup>';
+                htmlStr += '<tbody>';
+                htmlStr += '<tr>';
+                htmlStr += '<td style="font-size: 17px;color: #333333;font-weight: bold;">访问归属地</td>';
+                htmlStr += '<td>';
+                htmlStr += '<p style="font-size: 17px;color: #333333;font-weight: bold;">次数</p>';
+                htmlStr += '</td>';
+                htmlStr += '</tr>';
+                for(var i=0; i<dataArray.length; i++){
+                    htmlStr += '<tr>';
+                    htmlStr += '<td>' + dataArray[i].name + '</td>';
+                    htmlStr += '<td>';
+                    htmlStr += '<p style="padding-left: 15px;">' + dataArray[i].value + '</p>';
+                    htmlStr += '</td>';
+                    htmlStr += '</tr>';
+                }
+                htmlStr += '</tbody>';
+                htmlStr += '</table>';
+                $("#ipAddressHtml").html(htmlStr);
+            }
+        }, "GET", false, function (res) {
+            layer.msg(res.msg);
+        });
+
+        //用户登录浏览器分析
+        CoreUtil.sendAjax("/echarts/loginBrowser", null, function (res) {
+            var obj_name = res.data.name;
+            var count = res.data.count;
+            var option1 = {
+                //标题
+                title : {
+                    text : '用户浏览器分布'
+                    ,subtext : ''
+                    ,x : 'center'
+                    ,y : 'top'
+                    ,textAlign: 'center'
+                },
+                //提示框，鼠标悬浮交互时的信息提示
+                tooltip : {
+                    show : true,//显示策略，可选为：true（显示） | false（隐藏）
+                    trigger: 'item',//触发类型，默认数据触发，见下图，可选为：'item' | 'axis'
+                    formatter: "{a} <br/>{b} : {c} ({d}%)"
+                },
+                //工具箱，每个图表最多仅有一个工具箱
+                toolbox: {
+                    show : true,//显示策略，可选为：true（显示） | false（隐藏）
+                    feature : {
+                        mark : {show: true},
+                        //数据视图
+                        dataView : {show: false, readOnly: true},
+                        restore : {
+                            title: '还原',
+                            show: true
+                        },
+                        saveAsImage : {
+                            name: '用户登录浏览器分析', //保存图片文件的名称
+                            title: '保存',
+                            type: 'png'
+                        }
+                    }
+                },
+                //图例，每个图表最多仅有一个图例，混搭图表共享
+                legend : {
+                    orient: 'vertical',//布局方式，默认为水平布局，可选为：'horizontal' | 'vertical'
+                    x: 'left',//水平安放位置，默认为全图居中，可选为：'center' | 'left' | 'right' | {number}（x坐标，单位px）
+                    data: obj_name
+                },
+                series : [
+                    {
+                        name:'访问来源',
+                        type:'pie',
+                        radius : '55%',
+                        center: ['50%', '60%'],
+                        data: count
+                    }
+                ]
+            };
+            myChart1.setOption(option1);
+        }, "GET", false, function (res) {
+            layer.msg(res.msg);
+        });
+    });
+
+</script>
+</html>

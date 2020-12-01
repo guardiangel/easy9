@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.colin.mapper.yw.JxcOutStoreMapper">
+
+  <resultMap id="BaseResultMap" type="org.colin.model.ro.JxcOutStore">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="create_user" jdbcType="VARCHAR" property="createUser" />
+    <result column="goods_code" jdbcType="VARCHAR" property="goodsCode" />
+    <result column="out_count" jdbcType="DECIMAL" property="outCount" />
+    <result column="out_person" jdbcType="VARCHAR" property="outPerson" />
+    <result column="out_person_phone" jdbcType="VARCHAR" property="outPersonPhone" />
+    <result column="out_desc" jdbcType="VARCHAR" property="outDesc" />
+    <result column="wh_code" jdbcType="VARCHAR" property="whCode" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, create_time, create_user, goods_code, out_count, out_person, out_person_phone, 
+    out_desc, wh_code
+  </sql>
+
+  <!--查询所有出库记录信息-->
+  <select id="getAllOutStore" parameterType="org.colin.model.vo.req.JxcOutStoreReqVO" resultType="org.colin.model.vo.resp.JxcOutStoreRespVO">
+        select
+        t1.id, t1.create_time, t1.create_user, t1.goods_code, t1.out_count, t1.out_person, t1.out_person_phone, t1.out_desc, t1.wh_code,
+        t2.real_name as createUserName, t3.goods_name, t3.goods_model, t3.goods_type, t4.dic_value as goodsTypeDesc, t5.wh_name as whCodeDesc
+        from jxc_out_store t1
+        left join jxc_warehouse t5 on t1.wh_code = t5.wh_code
+        left join sys_user t2 on t1.create_user = t2.id
+        inner join jxc_goods t3 on t1.goods_code = t3.goods_code
+        left join sys_dic_info t4 on t3.goods_type = t4.dic_code and t4.type_code = 'GOODSTYPE'
+        <where>
+          <if test="goodsType != null and goodsType != '' ">
+            AND t3.goods_type  = #{goodsType}
+          </if>
+          <if test="goodsName != null and goodsName != '' ">
+            AND t3.goods_name LIKE concat('%',#{goodsName},'%')
+          </if>
+          <if test="goodsCode != null and goodsCode != '' ">
+            AND t1.goods_code LIKE concat('%',#{goodsCode},'%')
+          </if>
+          <if test="goodsModel != null and goodsModel != '' ">
+            AND t3.goods_model LIKE concat('%',#{goodsModel},'%')
+          </if>
+          <if test="outPerson != null and outPerson != '' ">
+            AND t1.out_count LIKE concat('%',#{outPerson},'%')
+          </if>
+          <if test="whCode != null and whCode != '' ">
+            AND t1.wh_code LIKE concat('%',#{whCode},'%')
+          </if>
+        </where>
+        order by t1.create_time desc
+  </select>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultType="org.colin.model.vo.resp.JxcOutStoreRespVO">
+    select
+    <include refid="Base_Column_List" />
+    from jxc_out_store
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from jxc_out_store
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="org.colin.model.ro.JxcOutStore">
+    insert into jxc_out_store (id, create_time, create_user, 
+      goods_code, out_count, out_person, 
+      out_person_phone, out_desc, wh_code)
+    values (#{id,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{createUser,jdbcType=VARCHAR}, 
+      #{goodsCode,jdbcType=VARCHAR}, #{outCount,jdbcType=DECIMAL}, #{outPerson,jdbcType=VARCHAR}, 
+      #{outPersonPhone,jdbcType=VARCHAR}, #{outDesc,jdbcType=VARCHAR}, #{whCode,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="org.colin.model.ro.JxcOutStore">
+    insert into jxc_out_store
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="createUser != null">
+        create_user,
+      </if>
+      <if test="goodsCode != null">
+        goods_code,
+      </if>
+      <if test="outCount != null">
+        out_count,
+      </if>
+      <if test="outPerson != null">
+        out_person,
+      </if>
+      <if test="outPersonPhone != null">
+        out_person_phone,
+      </if>
+      <if test="outDesc != null">
+        out_desc,
+      </if>
+      <if test="whCode != null">
+        wh_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createUser != null">
+        #{createUser,jdbcType=VARCHAR},
+      </if>
+      <if test="goodsCode != null">
+        #{goodsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="outCount != null">
+        #{outCount,jdbcType=DECIMAL},
+      </if>
+      <if test="outPerson != null">
+        #{outPerson,jdbcType=VARCHAR},
+      </if>
+      <if test="outPersonPhone != null">
+        #{outPersonPhone,jdbcType=VARCHAR},
+      </if>
+      <if test="outDesc != null">
+        #{outDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="whCode != null">
+        #{whCode,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="org.colin.model.ro.JxcOutStore">
+    update jxc_out_store
+    <set>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createUser != null">
+        create_user = #{createUser,jdbcType=VARCHAR},
+      </if>
+      <if test="goodsCode != null">
+        goods_code = #{goodsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="outCount != null">
+        out_count = #{outCount,jdbcType=DECIMAL},
+      </if>
+      <if test="outPerson != null">
+        out_person = #{outPerson,jdbcType=VARCHAR},
+      </if>
+      <if test="outPersonPhone != null">
+        out_person_phone = #{outPersonPhone,jdbcType=VARCHAR},
+      </if>
+      <if test="outDesc != null">
+        out_desc = #{outDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="whCode != null">
+        wh_code = #{whCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+
+  <update id="updateByPrimaryKey" parameterType="org.colin.model.ro.JxcOutStore">
+    update jxc_out_store
+    set create_time = #{createTime,jdbcType=TIMESTAMP},
+      create_user = #{createUser,jdbcType=VARCHAR},
+      goods_code = #{goodsCode,jdbcType=VARCHAR},
+      out_count = #{outCount,jdbcType=DECIMAL},
+      out_person = #{outPerson,jdbcType=VARCHAR},
+      out_person_phone = #{outPersonPhone,jdbcType=VARCHAR},
+      out_desc = #{outDesc,jdbcType=VARCHAR},
+      wh_code = #{whCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

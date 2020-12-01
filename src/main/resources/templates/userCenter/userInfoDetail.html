@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户详情页面</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/css/custom.form.css">
+    <style>
+        .layui-input-block{
+            min-height: 46px;
+        }
+        .layui-input{
+            width: 394px;
+        }
+        .user-photo-img {
+            margin-right: 1px;
+            border-radius: 50%;
+            width: 95px;
+            height: 95px;
+        }
+    </style>
+</head>
+<body>
+<form class="layui-form" action="" id="objFormId001" lay-filter="objFormId001">
+    <div class="layui-tab layui-tab-brief" lay-filter="mainTab">
+            <ul class="layui-tab-title">
+                <li class="layui-this">基础信息</li>
+                <li>其他信息</li>
+            </ul>
+            <div class="layui-tab-content">
+                <div class="layui-tab-item layui-show">
+                    <div style="margin-left: 100px;margin-top: 20px;line-height: 40px;">
+                        <div class="layui-inline">
+                            <div class="layui-form-label"></div>
+                            <div class="layui-input-block" style="min-height: 110px;">
+                                <img src="" id="photo" class="user-photo-img"/>
+                            </div>
+                            <div class="layui-form-label">真实姓名</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="realName" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">登录帐号</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="username" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">昵称</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="nickName" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">性别</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="sex" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">所属部门</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="deptName" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">手机号</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="phone" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">邮箱</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="email" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">月薪</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="monthSalary" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">积分</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="point" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">账号状态</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="status" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">创建来源</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="createWhere" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">创建人</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="createUserName" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">创建时间</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="createTime" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">更新人</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="updateUserName" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">更新时间</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="updateTime" class="layui-input">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-tab-item">
+                    <div style="margin-left: 100px;margin-top: 20px;line-height: 40px;">
+                        <div class="layui-inline">
+                            <div class="layui-form-label">工资卡号</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="wagesNumber" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">社保卡号</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="socialNumber" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">公积金卡号</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="providentFundNumber" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">民族</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="nation" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">国籍</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="country" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">家庭住址</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="homeAddress" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">居住地址</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="liveAddress" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">身份证号</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="idNumber" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">毕业院校</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="graduationSchool" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">学历</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="education" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">专业</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="major" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">政治面貌</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="identity" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">身高</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="height" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">体重</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="weight" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">血型</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="bloodType" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">QQ</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="qq" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">微信</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="webchat" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">MSN</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="msn" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">婚姻状态</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="marriage" class="layui-input">
+                            </div>
+                            <div class="layui-form-label">是否服军役</div>
+                            <div class="layui-input-block">
+                                <input type="text" name="militaryService" class="layui-input">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+</form>
+</body>
+<script src="/layui/layui.all.js"></script>
+<script src="/js/core.util.js"></script>
+<script>
+    let $ = jQuery = layui.jquery;
+    let layer = layui.layer
+        , form = layui.form
+        , table = layui.table
+        , tree = layui.tree
+        , element = layui.element
+        , transfer = layui.transfer;
+
+    layui.use(['layer', 'form', 'table', 'element'], function () {
+
+        CoreUtil.sendAjax("/sys/user", null, function (res) {
+            // console.log(res);
+            setFormValue(res.data);
+        }, "GET", false, function (res) {
+            layer.msg(res.msg);
+        });
+
+        //回显数据，填充表格
+        function setFormValue(data) {
+            // console.log(data);
+            $("#photo").attr("src", data.photo);
+            form.val("objFormId001", {
+                "realName": data.realName
+                , "username": data.username
+                , "username": data.username
+                , "nickName": data.nickName
+                , "sex": data.sexStr
+                , "deptName": data.deptName
+                , "phone": data.phone
+                , "email": data.email
+                , "monthSalary": data.monthSalary
+                , "point": data.point
+                , "status": data.statusStr
+                , "createWhere": data.createWhereStr
+                , "createUserName": data.createUserName
+                , "createTime": data.createTime
+                , "updateUserName": data.updateUserName
+                , "updateTime": data.updateTime
+                , "wagesNumber": data.wagesNumber
+                , "socialNumber": data.socialNumber
+                , "providentFundNumber": data.providentFundNumber
+                , "nation": data.nation
+                , "country": data.country
+                , "homeAddress": data.homeAddress
+                , "liveAddress": data.liveAddress
+                , "idNumber": data.idNumber
+                , "graduationSchool": data.graduationSchool
+                , "education": data.education
+                , "major": data.major
+                , "identity": data.identity
+                , "height": data.height
+                , "weight": data.weight
+                , "bloodType": data.bloodType
+                , "qq": data.qq
+                , "webchat": data.webchat
+                , "msn": data.msn
+                , "marriage": data.marriage
+                , "militaryService": data.militaryService
+            });
+            form.render();
+        }
+    });
+</script>
+</html>

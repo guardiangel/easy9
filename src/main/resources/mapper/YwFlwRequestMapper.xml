@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.colin.mapper.yw.YwFlwRequestMapper">
+
+  <resultMap id="BaseResultMap" type="org.colin.model.ro.YwFlwRequest">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="flw_code" jdbcType="VARCHAR" property="flwCode" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="create_user_id" jdbcType="VARCHAR" property="createUserId" />
+    <result column="flw_type" jdbcType="VARCHAR" property="flwType" />
+    <result column="desc_str" jdbcType="VARCHAR" property="descStr" />
+    <result column="check_code" jdbcType="VARCHAR" property="checkCode" />
+    <result column="check_last_result" jdbcType="VARCHAR" property="checkLastResult" />
+    <result column="current_check_user_id" jdbcType="VARCHAR" property="currentCheckUserId" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, flw_code, create_time, create_user_id, flw_type, desc_str, check_code, check_last_result, current_check_user_id
+  </sql>
+
+  <!--分页获取当前用户需要审核的所有流程-->
+  <select id="checkPageInfo" parameterType="org.colin.model.vo.req.CheckRequestVO" resultType="org.colin.model.vo.resp.FlwRespVO">
+        select
+            t1.id, t1.flw_code, t1.create_time, t1.create_user_id, t1.flw_type, t1.desc_str, t1.check_code, t1.check_last_result, t1.current_check_user_id,
+            t2.real_name as createUserName, t3.dic_value as flwTypeName
+        from yw_flw_request t1
+        LEFT JOIN sys_user t2 on t1.create_user_id = t2.id
+        LEFT JOIN sys_dic_info t3 on t1.flw_type = t3.dic_code and t3.type_code = 'FLW_TYPE'
+        where t1.current_check_user_id = #{checkUserId}
+        <if test="startTime != null and startTime != ''">
+          AND t1.create_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+          AND t1.create_time &lt;= #{endTime}
+        </if>
+        <if test="checkLastResult != null and checkLastResult != '' ">
+          AND t1.check_last_result = #{checkLastResult}
+        </if>
+        <if test="flwType != null and flwType != '' ">
+          AND t1.flw_type = #{flwType}
+        </if>
+        <if test="flwCode != null and flwCode != '' ">
+          AND t1.flw_code like concat('%',#{flwCode},'%')
+        </if>
+        <if test="requestName != null and requestName != '' ">
+          AND t2.real_name like concat('%',#{requestName},'%')
+        </if>
+  </select>
+
+  <!--分页获取所有的流程申请记录-->
+  <select id="flwPageInfo" parameterType="org.colin.model.vo.req.FlwRequestVO" resultType="org.colin.model.vo.resp.FlwRespVO">
+      select
+          t1.id, t1.flw_code, t1.create_time, t1.create_user_id, t1.flw_type, t1.desc_str, t1.check_code, t1.check_last_result, t1.current_check_user_id,
+          t2.real_name as createUserName, t3.dic_value as flwTypeName, t4.real_name as currentCheckUserName
+      from yw_flw_request t1
+      LEFT JOIN sys_user t2 on t1.create_user_id = t2.id
+      LEFT JOIN sys_user t4 on t1.current_check_user_id = t4.id
+      LEFT JOIN sys_dic_info t3 on t1.flw_type = t3.dic_code and t3.type_code = 'FLW_TYPE'
+      <where>
+        <if test="requestUserId != null and requestUserId != '' ">
+          AND t1.create_user_id = #{requestUserId}
+        </if>
+        <if test="checkLastResult != null and checkLastResult != '' ">
+          AND t1.check_last_result = #{checkLastResult}
+        </if>
+        <if test="flwType != null and flwType != '' ">
+          AND t1.flw_type = #{flwType}
+        </if>
+        <if test="startTime != null and startTime != ''">
+          AND t1.create_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+          AND t1.create_time &lt;= #{endTime}
+        </if>
+      </where>
+  </select>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from yw_flw_request
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from yw_flw_request
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="org.colin.model.ro.YwFlwRequest">
+    insert into yw_flw_request (id, flw_code, create_time, 
+      create_user_id, flw_type, desc_str,
+      check_code, check_last_result, current_check_user_id)
+    values (#{id,jdbcType=VARCHAR}, #{flwCode,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{createUserId,jdbcType=VARCHAR}, #{flwType,jdbcType=VARCHAR}, #{descStr,jdbcType=VARCHAR}, 
+      #{checkCode,jdbcType=VARCHAR}, #{checkLastResult,jdbcType=VARCHAR}), #{currentCheckUserId,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="org.colin.model.ro.YwFlwRequest">
+    insert into yw_flw_request
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="flwCode != null">
+        flw_code,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="createUserId != null">
+        create_user_id,
+      </if>
+      <if test="flwType != null">
+        flw_type,
+      </if>
+      <if test="descStr != null">
+        desc_str,
+      </if>
+      <if test="checkCode != null">
+        check_code,
+      </if>
+      <if test="checkLastResult != null">
+        check_last_result,
+      </if>
+      <if test="currentCheckUserId != null">
+        current_check_user_id,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="flwCode != null">
+        #{flwCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createUserId != null">
+        #{createUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="flwType != null">
+        #{flwType,jdbcType=VARCHAR},
+      </if>
+      <if test="descStr != null">
+        #{descStr,jdbcType=VARCHAR},
+      </if>
+      <if test="checkCode != null">
+        #{checkCode,jdbcType=VARCHAR},
+      </if>
+      <if test="checkLastResult != null">
+        #{checkLastResult,jdbcType=VARCHAR},
+      </if>
+      <if test="currentCheckUserId != null">
+        #{currentCheckUserId,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="org.colin.model.ro.YwFlwRequest">
+    update yw_flw_request
+    <set>
+      <if test="flwCode != null">
+        flw_code = #{flwCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createUserId != null">
+        create_user_id = #{createUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="flwType != null">
+        flw_type = #{flwType,jdbcType=VARCHAR},
+      </if>
+      <if test="descStr != null">
+        desc_str = #{descStr,jdbcType=VARCHAR},
+      </if>
+      <if test="checkCode != null">
+        check_code = #{checkCode,jdbcType=VARCHAR},
+      </if>
+      <if test="checkLastResult != null">
+        check_last_result = #{checkLastResult,jdbcType=VARCHAR},
+      </if>
+      <if test="currentCheckUserId != null">
+        current_check_user_id = #{currentCheckUserId,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.colin.model.ro.YwFlwRequest">
+    update yw_flw_request
+    set flw_code = #{flwCode,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      create_user_id = #{createUserId,jdbcType=VARCHAR},
+      flw_type = #{flwType,jdbcType=VARCHAR},
+      desc_str = #{descStr,jdbcType=VARCHAR},
+      check_code = #{checkCode,jdbcType=VARCHAR},
+      check_last_result = #{checkLastResult,jdbcType=VARCHAR}
+      current_check_user_id = #{currentCheckUserId,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

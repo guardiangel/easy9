@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.colin.mapper.yw.JxcStoreMapper">
+
+  <resultMap id="BaseResultMap" type="org.colin.model.ro.JxcStore">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="update_user" jdbcType="VARCHAR" property="updateUser" />
+    <result column="goods_code" jdbcType="VARCHAR" property="goodsCode" />
+    <result column="store_count" jdbcType="DECIMAL" property="storeCount" />
+    <result column="warn_count" jdbcType="DECIMAL" property="warnCount" />
+    <result column="goods_unit" jdbcType="VARCHAR" property="goodsUnit" />
+    <result column="wh_code" jdbcType="VARCHAR" property="whCode" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, update_time, update_user, goods_code, store_count, warn_count, goods_unit, wh_code
+  </sql>
+
+  <!--查询所有库存信息-->
+  <select id="selectAll" parameterType="org.colin.model.vo.req.JxcStoreReqVO" resultType="org.colin.model.vo.resp.JxcStoreRespVO">
+        SELECT
+        t1.id, t1.update_time, t1.update_user, t1.goods_code, t1.store_count, t1.warn_count, t1.goods_unit, t1.wh_code,
+        t2.real_name as updateUserName, t3.goods_name, t3.goods_type, t3.goods_model, t4.dic_value as goodsTypeDesc, t5.wh_name as whCodeDesc
+        from jxc_store t1
+        left join jxc_warehouse t5 on t1.wh_code = t5.wh_code
+        left join sys_user t2 on t1.update_user = t2.id
+        inner join jxc_goods t3 on t1.goods_code = t3.goods_code
+        left join sys_dic_info t4 on t3.goods_type = t4.dic_code and t4.type_code = 'GOODSTYPE'
+        <where>
+          <if test="goodsType != null and goodsType != '' ">
+            AND t3.goods_type  = #{goodsType}
+          </if>
+          <if test="goodsName != null and goodsName != '' ">
+            AND t3.goods_name LIKE concat('%',#{goodsName},'%')
+          </if>
+          <if test="goodsCode != null and goodsCode != '' ">
+            AND t1.goods_code LIKE concat('%',#{goodsCode},'%')
+          </if>
+          <if test="goodsModel != null and goodsModel != '' ">
+            AND t3.goods_model LIKE concat('%',#{goodsModel},'%')
+          </if>
+          <if test="whCode != null and whCode != '' ">
+            AND t1.wh_code LIKE concat('%',#{whCode},'%')
+          </if>
+        </where>
+        order by t1.update_time desc
+  </select>
+
+  <!--根据商品编号和仓库编号查询库存信息-->
+  <select id="selectByGoodsCodeWhCode" parameterType="java.lang.String" resultType="org.colin.model.ro.JxcStore">
+    select
+    <include refid="Base_Column_List" />
+    from jxc_store
+    where goods_code = #{goodsCode} and wh_code = #{whCode}
+  </select>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultType="org.colin.model.vo.resp.JxcStoreRespVO">
+    select
+    <include refid="Base_Column_List" />
+    from jxc_store
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from jxc_store
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="org.colin.model.ro.JxcStore">
+    insert into jxc_store (id, update_time, update_user, 
+      goods_code, store_count, warn_count, 
+      goods_unit, wh_code)
+    values (#{id,jdbcType=VARCHAR}, #{updateTime,jdbcType=TIMESTAMP}, #{updateUser,jdbcType=VARCHAR}, 
+      #{goodsCode,jdbcType=VARCHAR}, #{storeCount,jdbcType=DECIMAL}, #{warnCount,jdbcType=DECIMAL}, 
+      #{goodsUnit,jdbcType=VARCHAR}, #{whCode,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="org.colin.model.ro.JxcStore">
+    insert into jxc_store
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="updateUser != null">
+        update_user,
+      </if>
+      <if test="goodsCode != null">
+        goods_code,
+      </if>
+      <if test="storeCount != null">
+        store_count,
+      </if>
+      <if test="warnCount != null">
+        warn_count,
+      </if>
+      <if test="goodsUnit != null">
+        goods_unit,
+      </if>
+      <if test="whCode != null">
+        wh_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateUser != null">
+        #{updateUser,jdbcType=VARCHAR},
+      </if>
+      <if test="goodsCode != null">
+        #{goodsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="storeCount != null">
+        #{storeCount,jdbcType=DECIMAL},
+      </if>
+      <if test="warnCount != null">
+        #{warnCount,jdbcType=DECIMAL},
+      </if>
+      <if test="goodsUnit != null">
+        #{goodsUnit,jdbcType=VARCHAR},
+      </if>
+      <if test="whCode != null">
+        #{whCode,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="org.colin.model.ro.JxcStore">
+    update jxc_store
+    <set>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateUser != null">
+        update_user = #{updateUser,jdbcType=VARCHAR},
+      </if>
+      <if test="goodsCode != null">
+        goods_code = #{goodsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="storeCount != null">
+        store_count = #{storeCount,jdbcType=DECIMAL},
+      </if>
+      <if test="warnCount != null">
+        warn_count = #{warnCount,jdbcType=DECIMAL},
+      </if>
+      <if test="goodsUnit != null">
+        goods_unit = #{goodsUnit,jdbcType=VARCHAR},
+      </if>
+      <if test="whCode != null">
+        wh_code = #{whCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.colin.model.ro.JxcStore">
+    update jxc_store
+    set update_time = #{updateTime,jdbcType=TIMESTAMP},
+      update_user = #{updateUser,jdbcType=VARCHAR},
+      goods_code = #{goodsCode,jdbcType=VARCHAR},
+      store_count = #{storeCount,jdbcType=DECIMAL},
+      warn_count = #{warnCount,jdbcType=DECIMAL},
+      goods_unit = #{goodsUnit,jdbcType=VARCHAR},
+      wh_code = #{whCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

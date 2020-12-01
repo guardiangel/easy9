@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.colin.mapper.yw.YwStoreMapper">
+
+    <resultMap id="BaseResultMap" type="org.colin.model.entity.yw.YwStore">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="store_name" jdbcType="VARCHAR" property="storeName"/>
+        <result column="store_link_user" jdbcType="VARCHAR" property="storeLinkUser"/>
+        <result column="store_link_phone" jdbcType="VARCHAR" property="storeLinkPhone"/>
+        <result column="store_statement" jdbcType="VARCHAR" property="storeStatement"/>
+        <result column="community_id" jdbcType="VARCHAR" property="communityId"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="order_num" jdbcType="INTEGER" property="orderNum"/>
+        <result column="store_state" jdbcType="INTEGER" property="storeState"/>
+        <result column="receive_money" jdbcType="LONGVARCHAR" property="receiveMoney"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, store_name, store_link_user, store_link_phone, store_statement, receive_money, community_id, create_time, order_num, store_state
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from yw_store
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+      delete from yw_store
+      where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <!--根据商家ID删除其下所有商品-->
+    <delete id="deleteGoodsByStoreId" parameterType="java.lang.String">
+      delete from yw_goods
+      where store_id = #{storeId,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert" parameterType="org.colin.model.entity.yw.YwStore">
+    insert into yw_store (id, store_name, store_link_user,
+      store_link_phone, store_statement, community_id,
+      create_time, order_num, receive_money, store_state
+      )
+    values (#{id,jdbcType=VARCHAR}, #{storeName,jdbcType=VARCHAR}, #{storeLinkUser,jdbcType=VARCHAR},
+      #{storeLinkPhone,jdbcType=VARCHAR}, #{storeStatement,jdbcType=VARCHAR}, #{communityId,jdbcType=VARCHAR},
+      #{createTime,jdbcType=TIMESTAMP}, #{orderNum,jdbcType=INTEGER}, #{receiveMoney,jdbcType=LONGVARCHAR}, #{storeState,jdbcType=INTEGER}
+      )
+    </insert>
+    <insert id="insertSelective" parameterType="org.colin.model.entity.yw.YwStore">
+        insert into yw_store
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="storeName != null">
+                store_name,
+            </if>
+            <if test="storeLinkUser != null">
+                store_link_user,
+            </if>
+            <if test="storeLinkPhone != null">
+                store_link_phone,
+            </if>
+            <if test="storeStatement != null">
+                store_statement,
+            </if>
+            <if test="communityId != null">
+                community_id,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="orderNum != null">
+                order_num,
+            </if>
+            <if test="receiveMoney != null">
+                receive_money,
+            </if>
+            <if test="storeState != null">
+                store_state,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="storeName != null">
+                #{storeName,jdbcType=VARCHAR},
+            </if>
+            <if test="storeLinkUser != null">
+                #{storeLinkUser,jdbcType=VARCHAR},
+            </if>
+            <if test="storeLinkPhone != null">
+                #{storeLinkPhone,jdbcType=VARCHAR},
+            </if>
+            <if test="storeStatement != null">
+                #{storeStatement,jdbcType=VARCHAR},
+            </if>
+            <if test="communityId != null">
+                #{communityId,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="orderNum != null">
+                #{orderNum,jdbcType=INTEGER},
+            </if>
+            <if test="storeState != null">
+                #{storeState,jdbcType=INTEGER},
+            </if>
+            <if test="receiveMoney != null">
+                #{receiveMoney,jdbcType=LONGVARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="org.colin.model.entity.yw.YwStore">
+        update yw_store
+        <set>
+            <if test="storeName != null">
+                store_name = #{storeName,jdbcType=VARCHAR},
+            </if>
+            <if test="storeLinkUser != null">
+                store_link_user = #{storeLinkUser,jdbcType=VARCHAR},
+            </if>
+            <if test="storeLinkPhone != null">
+                store_link_phone = #{storeLinkPhone,jdbcType=VARCHAR},
+            </if>
+            <if test="storeStatement != null">
+                store_statement = #{storeStatement,jdbcType=VARCHAR},
+            </if>
+            <if test="communityId != null">
+                community_id = #{communityId,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="orderNum != null">
+                order_num = #{orderNum,jdbcType=INTEGER},
+            </if>
+            <if test="storeState != null">
+                store_state = #{storeState,jdbcType=INTEGER},
+            </if>
+            <if test="receiveMoney != null">
+                receive_money = #{receiveMoney,jdbcType=LONGVARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKeyWithBLOBs" parameterType="org.colin.model.entity.yw.YwStore">
+      update yw_store
+      set store_name = #{storeName,jdbcType=VARCHAR},
+        store_link_user = #{storeLinkUser,jdbcType=VARCHAR},
+        store_link_phone = #{storeLinkPhone,jdbcType=VARCHAR},
+        store_statement = #{storeStatement,jdbcType=VARCHAR},
+        community_id = #{communityId,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        order_num = #{orderNum,jdbcType=INTEGER},
+        store_state = #{storeState,jdbcType=INTEGER},
+        receive_money = #{receiveMoney,jdbcType=LONGVARCHAR}
+      where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="org.colin.model.entity.yw.YwStore">
+      update yw_store
+      set store_name = #{storeName,jdbcType=VARCHAR},
+        store_link_user = #{storeLinkUser,jdbcType=VARCHAR},
+        store_link_phone = #{storeLinkPhone,jdbcType=VARCHAR},
+        store_statement = #{storeStatement,jdbcType=VARCHAR},
+        community_id = #{communityId,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        order_num = #{orderNum,jdbcType=INTEGER}
+        store_state = #{storeState,jdbcType=INTEGER}
+      where id = #{id,jdbcType=VARCHAR}
+    </update>
+
+    <select id="selectAll" resultType="org.colin.model.vo.resp.YwStoreVO" parameterType="org.colin.model.vo.req.YwStorePageVO">
+        select t1.id, t1.store_name, t1.store_link_user, t1.store_link_phone, t1.store_statement, t1.receive_money, t1.community_id, t1.create_time, t1.order_num, t1.store_state, t2.com_name as communityName
+        from yw_store t1 left join yw_community t2 on t1.community_id = t2.id
+        <where>
+            <if test="comm != null and comm != ''">
+                AND t2.id = #{comm}
+            </if>
+            <if test="storeName != null and storeName != ''">
+                AND t1.store_name LIKE concat('%',#{storeName},'%')
+            </if>
+            <if test="startTime!=null and startTime!=''">
+                AND t1.create_time &gt;= #{startTime}
+            </if>
+            <if test="endTime!=null and endTime!=''">
+                AND t1.create_time &lt;= #{endTime}
+            </if>
+        </where>
+        order by t1.order_num ASC
+    </select>
+
+    <select id="getStoreByCommunityId" resultType="org.colin.model.entity.yw.YwStore">
+        select id, store_name, store_link_user, store_link_phone, store_statement, receive_money, community_id, create_time, order_num, store_state
+        from yw_store
+        where community_id = #{communityId} and store_state = 1
+        order by order_num asc
+    </select>
+
+</mapper>

@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title>工资管理</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/css/custom.form.css">
+    <link rel="stylesheet" href="/js/zTree_v3/css/zTreeStyle/zTreeStyle.css">
+    <!--引入我们在https://www.iconfont.cn平台生成的图标样式库-->
+    <link rel="stylesheet" href="/layui/css/modules/layui-icon-extend/iconfont.css" media="all">
+    <style>
+        .ztree li {
+            line-height: 27px;
+        }
+
+        .ztree li span.button {
+            width: 18px;
+            height: 26px;
+        }
+
+        .ztree li span.button.ico_open {
+            margin-top: 5px;
+            margin-right: 0px;
+        }
+
+        .ztree li span.button.ico_docu {
+            margin-top: 5px;
+        }
+
+        .ztree li a.curSelectedNode {
+            height: 26px;
+        }
+        .layui-form-label{
+            width: 80px;
+        }
+    </style>
+</head>
+<body>
+<div id="searchParam" shiro:hasPermission="xzgl:salary:list">
+    <form id="searchFormId" action="">
+        <div class="layui-form-item">
+            <div class="layui-input-inline">
+                <input type="text" name="yearMonth" placeholder="请选择时间" id="yearMonthIdQuery" class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" id="deptName" name="deptName" class="layui-input" autocomplete="off" placeholder="请输入部门名称">
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" id="realName" name="realName" class="layui-input" autocomplete="off" placeholder="请输真实姓名">
+            </div>
+            <div class="layui-input-inline ">
+                <button class="layui-btn" id="search">
+                    <span class="layui-icon layui-icon-search"></span>查询
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<table class="layui-hide" id="user_table" lay-filter="user_table" lay-skin="line"></table>
+<div id="laypage" class="$2('.layui-laypage-btn').click();"></div>
+
+<!--部门树型-->
+<div id="treeMultiple" class="ztree" style="display: none"></div>
+
+<!--新增-->
+<div class="layui-row operation_user" id="edit-user-info" style="display:none;">
+    <form class="layui-form" action="" style="margin-top: 10px;margin-left: 10px;margin-right: 10px;" lay-filter="objFilter" id="objFilter" autocomplete="off">
+        <div class="layui-card-body">
+            <div class="main-div">
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 10px;">
+                    <legend>基础信息</legend>
+                </fieldset>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">用户</label>
+                        <div class="layui-input-block">
+                            <input type="hidden" id="userId" name="userId"/>
+                            <input type="hidden" id="deptId" name="deptId"/>
+                            <input type="text" id="userName" name="userName" placeholder="请选择" class="layui-input" readonly="readonly" style="background:#eeeeee!important">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">时间</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="yearMonth" placeholder="请选择时间" id="yearMonthId" lay-verify="required" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">月薪</div>
+                        <div class="layui-input-block">
+                            <input type="text" id="monthSalary" name="monthSalary" lay-verify="required | number" value="0.00" placeholder="￥" readonly="readonly" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+                    <legend>收入项</legend>
+                </fieldset>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">奖金</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="bonus" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">出差补助</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="travelAllowance" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">部门绩效奖</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="deptAchievements" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">季度绩效奖</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="quarterAchievements" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">特殊补贴</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="specialSubsidy" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">考勤补贴</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="attendanceSubsidy" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">全勤奖</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="alltimeBonus" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">工龄奖</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="workyearBonus" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+                    <legend>扣款项</legend>
+                </fieldset>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">养老保险</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="yanglaoInsurance" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">医疗保险</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="yiliaoInsurance" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">失业保险</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="shiyeInsurance" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">工伤保险</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="gongshangInsurance" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">生育保险</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="shengyuInsurance" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">公积金</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="publicAccumulationFunds" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">纳税金额</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="payTaxes" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">罚款</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="punish" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">考勤扣款</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="attendancePunish" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div style="text-align: center;">
+                <button type="submit" class="layui-btn" lay-submit="" lay-filter="edit-user-submit">保存</button>
+                <button class="layui-btn layui-btn-primary" id="btn_cancel">返回</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!--详情-->
+<div class="layui-row operation_user" id="detail_obj" style="display:none;">
+    <form class="layui-form" action="" style="margin-top: 10px;margin-left: 10px;margin-right: 10px;" lay-filter="detail_obj" autocomplete="off">
+        <div class="layui-card-body">
+            <div class="main-div">
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 10px;">
+                    <legend>基础信息</legend>
+                </fieldset>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">用户</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="realName" placeholder="请选择" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">时间</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="yearMonth" placeholder="请选择时间" lay-verify="required" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">月薪</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="monthSalary" lay-verify="required | number" value="0.00" placeholder="￥" readonly="readonly" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+                    <legend>收入项</legend>
+                </fieldset>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">奖金</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="bonus" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">出差补助</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="travelAllowance" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">部门绩效奖</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="deptAchievements" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">季度绩效奖</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="quarterAchievements" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">特殊补贴</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="specialSubsidy" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">考勤补贴</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="attendanceSubsidy" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">全勤奖</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="alltimeBonus" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">工龄奖</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="workyearBonus" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">总收入金额</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="total_jiangjin" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                </div>
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+                    <legend>扣款项</legend>
+                </fieldset>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">养老保险</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="yanglaoInsurance" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">医疗保险</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="yiliaoInsurance" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">失业保险</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="shiyeInsurance" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">工伤保险</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="gongshangInsurance" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">生育保险</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="shengyuInsurance" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">公积金</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="publicAccumulationFunds" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">纳税金额</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="payTaxes" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">罚款</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="punish" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">考勤扣款</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="attendancePunish" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">扣款总额</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="total_koukuan" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                </div>
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+                    <legend>实发金额</legend>
+                </fieldset>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">实发金额</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="actual_pay" value="0.00" lay-verify="required | number" placeholder="￥" class="layui-input" readonly="readonly">
+                        </div>
+                    </div>
+                </div>
+                <div style="color: #f90101;font-size: 14px;margin-left: 115px">
+                    <span>
+                        实发工资 = 月薪 + 总收入金额 - 扣款总额
+                    </span>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-group">
+        <button class="layui-btn layui-btn-sm" shiro:hasPermission="xzgl:salary:add" type="button" lay-event="addNewUser">
+            <i class="layui-icon">&#xe608;</i> 新增
+        </button>
+        <button class="layui-btn layui-btn-sm" shiro:hasPermission="xzgl:salary:export" type="button" lay-event="exportObj">
+<!--            <a href="/xzgl/salary/export" style="color: #ffffff;">-->
+                <i class="iconfont layui-extend-daochu"></i> 导出
+<!--            </a>-->
+        </button>
+    </div>
+</script>
+<script type="text/html" id="tool">
+    <a class="layui-btn layui-btn-xs" lay-event="detail" shiro:hasPermission="xzgl:salary:detail">详情</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" shiro:hasPermission="xzgl:salary:deleted">删除</a>
+</script>
+<script type="text/javascript" src="/layui/layui.all.js"></script>
+<script type="text/javascript" src="/js/core.util.js"></script>
+<script type="text/javascript" src="/js/zTree_v3/js/jquery-1.4.4.min.js"></script>
+<script type="text/javascript" src="/js/zTree_v3/js/jquery.ztree.core.js"></script>
+<script type="text/javascript" src="/js/zTree_v3/js/jquery.ztree.excheck.js"></script>
+<script>
+    let $2 = jQuery = layui.jquery;
+    let layer = layui.layer
+        , form = layui.form
+        , laypage = layui.laypage
+        , table = layui.table
+        , tree = layui.tree
+        , element = layui.element
+        , laydate = layui.laydate;
+    //一般直接写在一个js文件中
+    layui.use(['layer', 'form', 'laypage', 'table', 'element'], function () {
+
+        //年月选择器
+        laydate.render({
+            elem: '#yearMonthId'
+            ,type: 'month'
+            ,showBottom: true //是否显示底部栏
+            ,btns: ['confirm'] //只显示确定按钮
+        });
+        //年月选择器
+        laydate.render({
+            elem: '#yearMonthIdQuery'
+            ,type: 'month'
+            ,showBottom: true //是否显示底部栏
+            ,btns: ['confirm'] //只显示确定按钮
+        });
+
+        //搜索条件
+        let searchParam = {
+            yearMonth: null,
+            deptName: null,
+            realName: null,
+            pageNum: 1,
+            pageSize: 10
+        };
+
+        //分页获取列表接口
+        CoreUtil.sendAjax("/xzgl/salary/list", JSON.stringify(searchParam), function (res) {
+            laypageTable(res.data.totalRows, searchParam.pageNum);
+            if (res.data.list != null) {
+                loadTable(res.data.list);
+            }
+        }, "POST", false, function (res) {
+            layer.msg("抱歉！您暂无获取列表的权限");
+            let noAuthorityData = [];
+            loadTable(noAuthorityData);
+        });
+
+        //分页条
+        let laypageTable = function (count, currentPage) {
+            laypage.render({
+                elem: 'laypage'
+                , count: count
+                , limit: searchParam.pageSize
+                , layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip']
+                , curr: location.hash.replace('#!currentPage=', '') //获取起始页
+                , hash: 'currentPage' //自定义hash值
+                , limits: [10, 25, 50, 100, 300, 500, 2000]
+                , jump: function (obj, first) {
+                    if (!first) {
+                        searchParam.pageNum = obj.curr;
+                        searchParam.pageSize = obj.limit;
+                        CoreUtil.sendAjax("/xzgl/salary/list", JSON.stringify(searchParam), function (res) {
+                            if (res.data.list != null) {
+                                loadTable(res.data.list);
+                                laypageTable(res.data.totalRows, searchParam.pageNum);
+                            }
+                        }, "POST", false, function (res) {
+                            layer.msg("抱歉！您暂无获取列表的权限");
+                            let noAuthorityData = [];
+                            loadTable(noAuthorityData);
+                        });
+                    }
+                }
+            });
+        };
+
+        //渲染table
+        let loadTable = function (data) {
+            table.render({
+                elem: '#user_table'
+                , cols: [
+                    [
+                        {type: 'checkbox', fixed: 'left'},
+                        {type: 'xuhao', fixed: 'left', title: '序号', width: 50, type: 'numbers'},
+                        {field: 'userIdName', title: '姓名', width: 100, fixed: 'left'},
+                        {field: 'deptIdName', title: '部门', width: 100},
+                        {field: 'monthSalary', title: '月薪', width: 120, sort: true},
+                        {field: 'pay_time', title: '发放时间', width: 100},
+                        {field: 'total_jiangjin', title: '总奖金', width: 120, sort: true},
+                        {field: 'total_koukuan', title: '总扣款', width: 120, sort: true},
+                        {field: 'actual_pay', title: '实发工资', width: 120, sort: true},
+                        {field: 'createTime', title: '创建时间', sort: true, minWidth: 180},
+                        {field: 'createUserIdName', title: '创建人', sort: false, minWidth: 100},
+                        {width: 200, toolbar: "#tool", title: '操作', fixed: 'right'}
+                    ]
+                ]
+                , data: data
+                , loading: true
+                , even: true
+                , limit: data.length
+                , toolbar: '#toolbar'
+                , defaultToolbar: ['filter', 'print', 'exports', {
+                    title: '提示' //标题
+                    , layEvent: 'LAYTABLE_TIPS' //事件名，用于 toolbar 事件中使用
+                    , icon: 'layui-icon-tips' //图标类名
+                }]
+            });
+        };
+
+        //监听表格头部工具栏事件
+        table.on('toolbar(user_table)', function (obj) {
+            switch (obj.event) {
+                case 'addNewUser':
+                    layer.open({
+                        //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                        type: 1,
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: "新增工资记录",
+                        area: ['100%', '100%'],
+                        content: $2("#edit-user-info") //引用的弹出层的页面层的方式加载修改界面表单
+                    });
+                    break;
+                case 'exportObj':
+                    //调用公用方法导出数据到Excel
+                    CoreUtil.exportExcel('searchFormId', '/xzgl/salary/export');
+                    break;
+                case 'LAYTABLE_TIPS':
+                    layer.msg("这是工具栏右侧自定义的一个图标按钮");
+                    break;
+            }
+        });
+
+        //回显数据，填充表格
+        function setFormValue(obj) {
+            let data = obj.data;
+            form.val("detail_obj", {
+                "realName": data.userIdName
+                , "yearMonth": data.pay_time
+                , "monthSalary": data.monthSalary
+                , "bonus": data.bonus
+                , "travelAllowance": data.travelAllowance
+                , "deptAchievements": data.deptAchievements
+                , "quarterAchievements": data.quarterAchievements
+                , "specialSubsidy": data.specialSubsidy
+                , "attendanceSubsidy": data.attendanceSubsidy
+                , "alltimeBonus": data.alltimeBonus
+                , "workyearBonus": data.workyearBonus
+                , "yanglaoInsurance": data.yanglaoInsurance
+                , "yiliaoInsurance": data.yiliaoInsurance
+                , "shiyeInsurance": data.shiyeInsurance
+                , "gongshangInsurance": data.gongshangInsurance
+                , "shengyuInsurance": data.shengyuInsurance
+                , "publicAccumulationFunds": data.publicAccumulationFunds
+                , "payTaxes": data.payTaxes
+                , "punish": data.punish
+                , "attendancePunish": data.attendancePunish
+                , "actual_pay": data.actual_pay
+                , "total_koukuan": data.total_koukuan
+                , "total_jiangjin": data.total_jiangjin
+            });
+        }
+
+        //监听行工具事件
+        table.on('tool(user_table)', function (obj) {
+            let data = obj.data;
+            // console.log(data);
+            switch (obj.event) {
+                case 'del':
+                    tipDialog(data.id);
+                    break;
+                case 'detail':
+                    setFormValue(obj);
+                    layer.open({
+                        //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                        type: 1,
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: "工资详情",
+                        area: ['100%', '100%'],
+                        content: $2("#detail_obj") //引用的弹出层的页面层的方式加载修改界面表单
+                    });
+                    break;
+            }
+        });
+
+        //查询按钮点击事件
+        $2("#search").click(function () {
+            searchParam.yearMonth = $2("#yearMonthIdQuery").val();
+            searchParam.deptName = $2("#deptName").val();
+            searchParam.realName = $2("#realName").val();
+            searchParam.pageNum = 1;
+            CoreUtil.sendAjax("/xzgl/salary/list", JSON.stringify(searchParam), function (res) {
+                laypageTable(res.data.totalRows, searchParam.pageNum);
+                if (res.data.list != null) {
+                    loadTable(res.data.list);
+                }
+            }, "POST", false, function (res) {
+                layer.msg("抱歉！您暂无获取列表的权限");
+                let noAuthorityData = [];
+                loadTable(noAuthorityData);
+            });
+        });
+
+        //监听提交按钮
+        form.on('submit(edit-user-submit)', function (data) {
+            CoreUtil.sendAjax("/xzgl/salary/add", JSON.stringify(data.field), function (res) {
+                layer.closeAll(); //疯狂模式，关闭所有层
+                layer.msg(res.msg);
+                $2(".layui-laypage-btn").click();
+            }, "POST", false, function (res) {
+                layer.msg("抱歉！您暂无新增权限");
+            });
+            //清空表单数据
+            $("#objFilter")[0].reset();
+            form.render();
+            return false;
+        });
+
+        let zTreeSetting = {
+            view: {
+                fontCss: {
+                    color: "#203e82"
+                }
+            },
+            callback: {  //点击文字，将节点设置为选中
+                onClick: function (e, treeId, treeNode, clickFlag) {
+                    let zTree = $.fn.zTree.getZTreeObj("treeMultiple");
+                    zTree.checkNode(treeNode, !treeNode.checked, true);
+                }
+            },
+            check: {
+                enable: true,
+                chkStyle: "radio",
+                radioType: "all"
+            },
+            data: {
+                simpleData: {
+                    enable: true,
+                    idKey: "id", //节点数据中保存唯一标识的属性名称
+                    pIdKey: "pid", //节点数据中保存其父节点唯一标识的属性名称
+                    rootPId: 0 //根节点id
+                }
+            }
+        };
+
+        //初始化员工部门Tree
+        let initDeptUserTree = function () {
+            CoreUtil.sendAjax("/sys/user/deptUserTree", null, function (res) {
+                // console.log(res.data);
+                $.fn.zTree.init($("#treeMultiple"), zTreeSetting, res.data);
+                // 获取树对象
+                let treeObj = $.fn.zTree.getZTreeObj("treeMultiple");
+                /* 获取所有树节点 */
+                let nodes = treeObj.transformToArray(treeObj.getNodes());
+                // 展开除第一级之外的其他节点
+                for (let i = 0, length_1 = nodes.length; i < length_1; i++) {
+                    if (nodes[i].level == 0) {
+                        continue;
+                    }
+                    nodes[i].open = true;
+                }
+                //展开第一级节点
+                treeObj.expandNode(nodes[0], true);
+            }, "GET", false);
+        };
+
+        //监听部门树型选择框
+        $2(".operation_user input[name=userName]").click(function () {
+            initDeptUserTree();
+            layer.open({
+                type: 1,
+                offset: '0px',
+                skin: 'layui-layer-molv',
+                title: "选择用户",
+                area: ['80%', '98%'],
+                shade: 0,
+                shadeClose: false,
+                content: jQuery("#treeMultiple"),
+                btn: ['确定', '取消'],
+                yes: function (index) {
+                    let treeObj = $.fn.zTree.getZTreeObj("treeMultiple");
+                    let nodes = treeObj.getCheckedNodes(true);//获取选中节点值
+                    if(nodes != null){
+                        if(nodes.length > 1){
+                            layer.msg("只能选择一个用户！");
+                        }
+                        else if(nodes.length == 1){
+                            if(nodes[0].type == 1){
+                                // console.log(nodes);
+                                $2("#userId").val(nodes[0].id);
+                                $2("#deptId").val(nodes[0].pid);
+                                $2("#userName").val(nodes[0].name);
+                                $2("#monthSalary").val(nodes[0].monthSalary);
+                                layer.close(index);
+                            }else{
+                                layer.msg("请选择用户！");
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        //是否删除确认框
+        let tipDialog = function (pkId) {
+            layer.open({
+                content: '确定要删除吗?',
+                yes: function (index, layero) {
+                    layer.close(index); //如果设定了yes回调，需进行手工关闭
+                    CoreUtil.sendAjax("/xzgl/saraly/delete/" + pkId, null, function (res) {
+                        layer.msg(res.msg);
+                        $2(".layui-laypage-btn").click();
+                    }, "DELETE", false, function (res) {
+                        layer.msg("抱歉！您暂无删除的权限");
+                    });
+                }
+            });
+        };
+    });
+</script>
+</html>

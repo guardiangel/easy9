@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title>角色列表页面</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/css/custom.form.css">
+</head>
+<body>
+
+<!--
+这里是弹出层-编辑用户信息
+表单的id用于表单的选择，style是在本页隐藏，只有点击编辑才会弹出
+-->
+<div class="layui-row operation_role" id="edit-role-info" style="display:none;">
+    <form class="layui-form " action="" lay-filter="roleEditFilter" style="width: 700px;margin-top: 10px">
+        <input name="id" hidden/>
+        <input name="pid" hidden/>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">角色名称</label>
+            <div class="layui-input-block">
+                <input type="name" name="name" placeholder="请输入角色名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-form-label ">描述</div>
+            <div class="layui-input-block">
+                <input type="description" name="description" placeholder="请输入备注信息" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-block">
+                <input type="checkbox" value="" checked="" name="status" lay-skin="switch" lay-filter="switch-status" lay-text="正常|弃用"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">请选择权限</label>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-tree">
+                <div id="permissionTree" style="margin-left: 100px;"></div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button type="submit" class="layui-btn" lay-submit="" lay-filter="edit-role-submit">保存</button>
+                <button class="layui-btn layui-btn-primary" id="btn_cancel">返回</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<table class="layui-hide" id="role_table" lay-filter="role_table" lay-skin="line"></table>
+<div id="laypage" class="$('.layui-laypage-btn').click();"></div>
+</body>
+
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-group">
+        <button type="button" class="layui-btn" lay-event="addNewRole" shiro:hasPermission="sys:role:add">
+            <i class="layui-icon">&#xe608;</i> 新增角色
+        </button>
+    </div>
+</script>
+<script type="text/html" id="tool">
+    <a class="layui-btn layui-btn-xs" lay-event="edit" shiro:hasPermission="sys:role:update">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" shiro:hasPermission="sys:role:deleted">删除</a>
+</script>
+
+<script src="/layui/layui.all.js"></script>
+<script src="/js/core.util.js"></script>
+<script>
+    let $ = jQuery = layui.jquery;
+    let table = layui.table
+        , laypage = layui.laypage
+        , form = layui.form
+        , layer = layui.layer
+        , laydate = layui.laydate
+        , tree = layui.tree;
+    layui.use(['table', 'laypage', 'layer', 'laydate', 'tree'], function () {
+
+        //搜索条件
+        let searchParam = {
+            roleId: null,
+            roleName: null,
+            status: null,
+            startTime: null,
+            endTime: null,
+            pageNum: 1,
+            pageSize: 10
+        };
+
+        //分页获取角色列表接口
+        CoreUtil.sendAjax("/sys/roles", JSON.stringify(searchParam), function (res) {
+            laypageTable(res.data.totalRows, searchParam.pageNum);
+            if (res.data.list != null) {
+                loadTable(res.data.list);
+            }
+        }, "POST", false, function (res) {
+            layer.msg(res.msg);
+            let noAuthorityData = [];
+            loadTable(noAuthorityData);
+        });
+
+        //分页条
+        let laypageTable = function (count, currentPage) {
+            laypage.render({
+                elem: 'laypage'
+                , count: count
+                , limit: searchParam.pageSize
+                , layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip']
+                , curr: location.hash.replace('#!currentPage=', '') //获取起始页
+                , hash: 'currentPage' //自定义hash值
+                , limits: [10, 25, 50, 100, 300, 500, 2000]
+                , jump: function (obj, first) {
+                    if (!first) {
+                        searchParam.pageNum = obj.curr;
+                        searchParam.pageSize = obj.limit;
+                        CoreUtil.sendAjax("/sys/roles", JSON.stringify(searchParam), function (res) {
+                            if (res.data.list != null) {
+                                loadTable(res.data.list);
+                                laypageTable(res.data.totalRows, searchParam.pageNum);
+                            }
+                        }, "POST", false, function (res) {
+                            layer.msg("抱歉！您暂无获取用户列表的权限");
+                            let noAuthorityData = [];
+                            loadTable(noAuthorityData);
+                        });
+                    }
+                }
+            });
+        };
+
+        //渲染table
+        let loadTable = function (data) {
+            table.render({
+                elem: '#role_table'
+                , cols: [
+                    [
+                        {type: 'checkbox', fixed: 'left'},
+                        {field: 'name', fixed: 'left', title: '角色名称', width: 130},
+                        {field: 'description', title: '描述', width: 400},
+                        {
+                            field: 'status', title: '状态', width: 100, templet: function (item) {
+                                if (item.status === 1) {
+                                    return '  <input type="checkbox" lay-skin="switch" lay-text="正常|弃用" checked disabled>';
+                                }
+                                if (item.status === 0) {
+                                    return '  <input type="checkbox" lay-skin="switch" lay-text="正常|弃用" disabled>';
+                                }
+                            }
+                        },
+                        {field: 'createTime', title: '创建时间', sort: true, width: 180},
+                        {field: 'updateTime', title: '更新时间', sort: true, width: 180},
+                        {width: 200, toolbar: "#tool", title: '操作', fixed: 'right'}
+                    ]
+                ]
+                , data: data
+                , loading: true
+                , even: true
+                , limit: data.length
+                , toolbar: '#toolbar'
+                , defaultToolbar: ['filter', 'print', 'exports']
+            });
+        };
+
+        //监听表格头部工具栏事件
+        table.on('toolbar(role_table)', function (obj) {
+            let data = obj.data;
+            switch (obj.event) {
+                case 'addNewRole':
+                    layer.open({
+                        //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                        type: 1,
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: "新增角色信息",
+                        area: ['90%','90%'],
+                        content: $("#edit-role-info") //引用的弹出层的页面层的方式加载修改界面表单
+                    });
+                    form.val("roleEditFilter", {
+                        "name": ''
+                        , "id": ''
+                        , "description": ''
+                    });
+                    //初始化权限树
+                    initTree();
+                    break;
+            }
+        });
+
+        //监听行工具事件
+        table.on('tool(role_table)', function (obj) {
+            let data = obj.data;
+            switch (obj.event) {
+                case 'del':
+                    let roleIds = [];
+                    roleIds.push(data.id);
+                    tipDialog(roleIds, data.name);
+                    break;
+                case 'edit':
+                    layer.open({
+                        //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                        type: 1,
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: "修改角色信息",
+                        area: ['90%','90%'],
+                        content: $("#edit-role-info") //引用的弹出层的页面层的方式加载修改界面表单
+                    });
+                    //回显数据，填充表格
+                    setFormValue(obj);
+                    break;
+            }
+        });
+
+        //监听状态开关
+        form.on('switch(switch-status)', function () {
+            $(".operation_role input[name=status]").attr('type', 'hidden').val(this.checked ? 1 : 0);
+        });
+
+        //回显数据，填充表格
+        function setFormValue(obj) {
+            CoreUtil.sendAjax("/sys/role/" + obj.data.id, null, function (res) {
+                let data = res.data;
+                let status_value = true;
+                if (data.status === 0) {
+                    status_value = false;
+                }
+                form.val("roleEditFilter", {
+                    "name": data.name
+                    , "id": data.id
+                    , "description": data.description
+                    , "status": status_value
+                });
+                //加载权限树
+                loadPermissionTree(res.data.permissionRespNodes);
+            }, "GET", false);
+        }
+
+        //监听提交-编辑/新增弹框
+        form.on('submit(edit-role-submit)', function (data) {
+            let permissionIds = [];
+            let brchArrays = tree.getChecked('permissionIds');
+            let params = {
+                id: data.field.id,
+                name: data.field.name,
+                description: data.field.description,
+                status: data.field.status,
+                permissions: getPermissionIds(brchArrays, permissionIds)
+            }
+            if (data.field.id === undefined || data.field.id === null || data.field.id === "") {
+                CoreUtil.sendAjax("/sys/role", JSON.stringify(params), function (res) {
+                    layer.closeAll(); //疯狂模式，关闭所有层
+                    layer.msg(res.msg);
+                    $(".layui-laypage-btn").click();
+                }, "POST", false, function (res) {
+                    layer.msg(res.msg);
+                });
+            } else {
+                CoreUtil.sendAjax("/sys/role", JSON.stringify(params), function (res) {
+                    layer.closeAll(); //疯狂模式，关闭所有层
+                    layer.msg(res.msg);
+                    $(".layui-laypage-btn").click();
+                }, "PUT", false, function (res) {
+                    layer.msg(res.msg);
+                });
+            }
+            return false;
+        });
+
+        //初始化权限树
+        let initTree = function () {
+            CoreUtil.sendAjax("/sys/permission/tree/all", null, function (res) {
+                console.log(res.data);
+                loadPermissionTree(res.data);
+            }, "GET", false);
+        };
+
+        //权限树（默认选中已有权限）
+        let loadPermissionTree = function (data) {
+            tree.render({
+                elem: '#permissionTree'
+                , data: data
+                , onlyIconControl: true  //是否仅允许节点左侧图标控制展开收缩
+                , showCheckbox: true  //是否显示复选框
+                , id: 'permissionIds'
+                , accordion: false
+                , click: function (obj) {
+                    selectNode = obj;
+                    layer.msg(JSON.stringify(selectNode.data.title));
+                }
+            });
+        };
+
+        //是否删除确认框
+        let tipDialog = function (roleId, roleName) {
+            layer.open({
+                content: '确定要删除[' + roleName + ']角色吗?',
+                yes: function (index, layero) {
+                    layer.close(index); //如果设定了yes回调，需进行手工关闭
+                    CoreUtil.sendAjax("/sys/role/" + roleId, null, function (res) {
+                        layer.msg(res.msg);
+                        $(".layui-laypage-btn").click();
+                    }, "DELETE", false);
+                }
+            });
+        };
+    });
+
+    function getPermissionIds(jsonObj, permissionIds) {
+        if (jsonObj == undefined || jsonObj == null || !jsonObj instanceof Object) {
+            return null;
+        }
+        for (let i = 0; i < jsonObj.length; i++) {
+            permissionIds.push(jsonObj[i].id);
+            getPermissionIds(jsonObj[i].children, permissionIds);
+        }
+        return permissionIds;
+    }
+</script>

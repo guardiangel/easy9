@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>消息发布页面</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+</head>
+<body>
+
+<div style="margin-top: 20px;margin-left: 20px;margin-right: 20px;">
+    <form class="layui-form " action="" lay-filter="formData" id="formData" style="">
+        <div class="layui-form-item" id="noticeTypeDiv">
+            <label class="layui-form-label">消息类型</label>
+            <div class="layui-input-block">
+                <input type="hidden" name="id">
+                <select id="noticeType" name="type" class="select">
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">消息内容</label>
+            <div class="layui-input-block">
+                <textarea name="noticeContent" id="noticeContent"></textarea>
+                </textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button type="submit" class="layui-btn" lay-submit lay-filter="doSubmit">
+                    <span class="layui-icon layui-icon-add-1"></span>提交
+                </button>
+                <button type="reset" class="layui-btn layui-btn-warm">
+                    <span class="layui-icon layui-icon-refresh-1"></span>重置
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+<script src="/layui/layui.all.js"></script>
+<script src="/js/core.util.js"></script>
+
+<script>
+    let $ = jQuery = layui.jquery;
+
+    /**
+     * 获取url参数，回显内容，更新操作专用
+     * @param name
+     * @returns {string|null}
+     */
+    function getQueryString(name) {
+        let reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+        let r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return decodeURI(r[2]);
+        }
+        return null;
+    }
+
+    layui.config({
+        base: '/'
+    }).extend({
+        tinymce: 'layui/extend/tinymce/tinymce'
+    }).use(['form', 'tinymce'], function () {
+        let form = layui.form;
+        let tinymce = layui.tinymce;
+
+        //初始化下拉框
+        CoreUtil.sendAjax("/sys/dic/getSelectDicByTypeCode", null, function (res) {
+            if(res != null && res.data != null && res.data.length > 0){
+                $.each(res.data, function(index, item){
+                    if('NOTICE_TYPE' == item.typeCode){
+                        $("#noticeType").append(new Option("请选择消息类型", ""));
+                        if(item.dicInfo != null && item.dicInfo.length > 0){
+                            $.each(item.dicInfo, function(index2, item2){
+                                //往下拉菜单里添加元素
+                                $('#noticeType').append(new Option(item2.dicValue, item2.dicCode));
+                            });
+                        }else{
+                            $("#noticeType").append(new Option("暂无数据", ""));
+                        }
+                    }
+                });
+                form.render("select");//菜单渲染 把内容加载进去
+            }else{
+                layer.msg("数据字典信息无数据");
+            }
+        }, "GET", false, function (res) {
+            layer.msg(res.msg);
+        });
+
+        //初始化tinymce
+        let tinyId = tinymce.init({
+            selector: '#noticeContent',
+            language: "zh_CN",
+            height: 460,//初始化高度
+            min_height: 300,//最小高度
+            setup: function (editor) {
+                editor.on('init', function (e) {
+                    // console.log("初始化完成");
+                    initContent();//必须初始化完成之后，才能赋值
+                });
+            }
+        });
+
+        //富文本编辑框赋值操作
+        let initContent = function(){
+            //通过url参数赋值给表单
+            $('[name="id"]').val(getQueryString("id"));
+            let id = getQueryString("id");
+            // console.log("id="+id);
+            if(id == '' || id == null || id == undefined){
+                $('[name="type"]').val("");
+                tinyMCE.get('noticeContent').setContent("");
+            }else{
+                $("#noticeTypeDiv").attr("style", "display:none;");//隐藏
+                CoreUtil.sendAjax("/notice/queryById/" + id, null, function (res) {
+                    // console.log(res);
+                    if(res != null && res.data != null){
+                        let content = res.data.noticeContent;
+                        // console.log("content="+content);
+                        tinyMCE.get('noticeContent').setContent(content);
+                    }
+                }, "GET", false, function (res) {
+                    layer.msg(res.msg);
+                });
+            }
+        };
+
+
+        //关闭当前Frame页面并调用父页面
+        let closeFrame = function(msg){
+            let index = parent.layer.getFrameIndex(window.name);
+            parent.layer.close(index);
+            parent.refreshTable(msg);//调用父页面方法
+        };
+
+        //监听提交按钮
+        form.on('submit(doSubmit)', function (data) {
+            let formData = {
+                id: null,
+                type: null,
+                noticeContent: null,
+            };
+            //获取富文本编辑框中HTML内容
+            let noticeContentHtml = tinyMCE.editors[0].getContent();
+            formData.id = $('[name="id"]').val();
+            formData.type = $('#noticeType').val();
+            formData.noticeContent = noticeContentHtml;
+            // console.log(formData);
+            if (formData.id == undefined || formData.id == null || formData.id == "") {
+                //新增
+                CoreUtil.sendAjax("/notice/insert", JSON.stringify(formData), function (res) {
+                    // let index = parent.layer.getFrameIndex(window.name);
+                    // parent.layer.close(index);
+                    // parent.refreshTable(res.msg);//调用父页面方法
+                    closeFrame(res.msg);
+                }, "POST", false, function (res) {
+                    layer.msg(res.msg);
+                });
+            } else {
+                //修改
+                CoreUtil.sendAjax("/notice/updateNotice", JSON.stringify(formData), function (res) {
+                    closeFrame(res.msg);
+                }, "PUT", false, function (res) {
+                    layer.msg(res.msg);
+                });
+            }
+            return false;
+        });
+
+
+    });
+
+</script>
+</html>

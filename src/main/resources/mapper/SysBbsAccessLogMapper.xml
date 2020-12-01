@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.colin.mapper.SysBbsAccessLogMapper" >
+  <resultMap id="BaseResultMap" type="org.colin.model.entity.SysBbsAccessLog" >
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="access_time" property="accessTime" jdbcType="TIMESTAMP" />
+    <result column="access_ip" property="accessIp" jdbcType="VARCHAR" />
+    <result column="access_address" property="accessAddress" jdbcType="VARCHAR" />
+    <result column="access_browser" property="accessBrowser" jdbcType="VARCHAR" />
+    <result column="access_way" property="accessWay" jdbcType="INTEGER" />
+    <result column="remk" property="remk" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, access_time, access_ip, access_address, access_browser, access_way, remk
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from sys_bbs_access_log
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from sys_bbs_access_log
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="org.colin.model.entity.SysBbsAccessLog" >
+    insert into sys_bbs_access_log (id, access_time, access_ip, 
+      access_address, access_browser, access_way, 
+      remk)
+    values (#{id,jdbcType=VARCHAR}, #{accessTime,jdbcType=TIMESTAMP}, #{accessIp,jdbcType=VARCHAR}, 
+      #{accessAddress,jdbcType=VARCHAR}, #{accessBrowser,jdbcType=VARCHAR}, #{accessWay,jdbcType=INTEGER}, 
+      #{remk,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="org.colin.model.entity.SysBbsAccessLog" >
+    insert into sys_bbs_access_log
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="accessTime != null" >
+        access_time,
+      </if>
+      <if test="accessIp != null" >
+        access_ip,
+      </if>
+      <if test="accessAddress != null" >
+        access_address,
+      </if>
+      <if test="accessBrowser != null" >
+        access_browser,
+      </if>
+      <if test="accessWay != null" >
+        access_way,
+      </if>
+      <if test="remk != null" >
+        remk,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="accessTime != null" >
+        #{accessTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="accessIp != null" >
+        #{accessIp,jdbcType=VARCHAR},
+      </if>
+      <if test="accessAddress != null" >
+        #{accessAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="accessBrowser != null" >
+        #{accessBrowser,jdbcType=VARCHAR},
+      </if>
+      <if test="accessWay != null" >
+        #{accessWay,jdbcType=INTEGER},
+      </if>
+      <if test="remk != null" >
+        #{remk,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="org.colin.model.entity.SysBbsAccessLog" >
+    update sys_bbs_access_log
+    <set >
+      <if test="accessTime != null" >
+        access_time = #{accessTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="accessIp != null" >
+        access_ip = #{accessIp,jdbcType=VARCHAR},
+      </if>
+      <if test="accessAddress != null" >
+        access_address = #{accessAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="accessBrowser != null" >
+        access_browser = #{accessBrowser,jdbcType=VARCHAR},
+      </if>
+      <if test="accessWay != null" >
+        access_way = #{accessWay,jdbcType=INTEGER},
+      </if>
+      <if test="remk != null" >
+        remk = #{remk,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.colin.model.entity.SysBbsAccessLog" >
+    update sys_bbs_access_log
+    set access_time = #{accessTime,jdbcType=TIMESTAMP},
+      access_ip = #{accessIp,jdbcType=VARCHAR},
+      access_address = #{accessAddress,jdbcType=VARCHAR},
+      access_browser = #{accessBrowser,jdbcType=VARCHAR},
+      access_way = #{accessWay,jdbcType=INTEGER},
+      remk = #{remk,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

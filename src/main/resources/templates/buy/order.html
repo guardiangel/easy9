@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!--强制让文档与设备的宽度保持1：1,对页面设置不能进行缩放-->
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"/>
+    <!--必须联网才可以访问,禁止浏览器从本地计算机的缓存中访问页面内容-->
+    <meta http-equiv="Cache-Control" name="no-store"/>
+    <!--页面描述-->
+    <meta name="description" content="社区生活小助手"/>
+    <!--页面关键词-->
+    <meta name="keywords" content="社区生活小助手"/>
+    <!--网页作者-->
+    <meta name="author" content="name, 1134135987@qdescriptionq.com"/>
+    <!--为移动设备添加 viewport-->
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1, user-scalable=no">
+    <!---->
+    <title>订单查询</title>
+    <link rel="stylesheet" type="text/css" href="/layui/css/layui.css?v=<%=Math.random()%>" media="all">
+    <!--
+    <link rel="stylesheet" href="/layui/css/layui.mobile.css" media="all">
+    -->
+    <link rel="icon" type="image/x-icon" href="/images/easy9.ico"/>
+    <style>
+    </style>
+</head>
+<body>
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+    <legend style="text-align: center;">社区生活小助手-订单查询</legend>
+</fieldset>
+<div>
+    <form class="layui-form layui-form-pane" action="" style="margin-top: 10px;margin-left: 10px;margin-right: 10px;" autocomplete="off">
+        <div class="layui-form-item">
+            <label class="layui-form-label">订单号</label>
+            <div class="layui-input-block">
+                <input type="number" name="orderNum" placeholder="请输入订单号" lay-verify="required" class="layui-input" maxlength="6"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div style="text-align: center;">
+                <button type="button" class="layui-btn" onclick="goShopping()">我要购物</button>
+                <button type="submit" class="layui-btn" lay-submit="" lay-filter="edit-object-submit">查询</button>
+            </div>
+        </div>
+    </form>
+    <hr class="layui-bg-orange">
+    <div style="margin-left: 2px;margin-right: 2px;">
+        <table id="obj_table" lay-filter="obj_table"></table>
+    </div>
+    <div style="font-size: 15px;color: #384238;margin-left: 20px;margin-top: 20px;">
+        <p id="totalPrice"></p>
+        <p id="orderTime"></p>
+    </div>
+</div>
+
+</body>
+<script src="/layui/layui.all.js?v=<%=Math.random()%>"></script>
+<script src="/js/core.util.js?v=<%=Math.random()%>"></script>
+<script>
+    let table = layui.table;
+    let form = layui.form;
+    let layer = layui.layer;
+    let $ = jQuery = layui.jquery;
+    layui.use(['table', 'layer', 'form'], function () {
+        //监听查询按钮
+        form.on('submit(edit-object-submit)', function (data) {
+            let orderNum = data.field.orderNum;
+            CoreUtil.sendAjax("/order/getAllOrderByOrderNum/" + orderNum, null, function (res) {
+                console.log(res.data[0]);
+                let orderDetail = res.data[0];
+                let totalPrice = orderDetail.totalPrice;
+                let orderTime = orderDetail.createTime;
+                $('#orderTime').html('下单时间：' + orderTime);
+                $('#totalPrice').html('订单总金额：' + totalPrice + '元');
+                loadTable(res.data);
+            }, "GET", false, function (res) {
+                console.log(res);
+                layer.msg("抱歉！您暂无新增权限");
+                let noData = [];
+                loadTable(noData);
+            });
+            return false;
+        });
+
+        //渲染table
+        let loadTable = function (data) {
+            table.render({
+                elem: '#obj_table'
+                , cols: [
+                    [
+                        {type: 'xuhao', fixed: 'left', title: '序号', type: 'numbers', width: 40},
+                        {field: 'goodsName', title: '商品名称', width: 150},
+                        {
+                            field: 'goodsPrice', title: '单价', align: 'center', templet: function (item) {
+                                return '￥' + item.goodsPrice;
+                            }
+                        },
+                        {field: 'buyCount', title: '数量', align: 'center'},
+                        {
+                            field: 'heji', title: '合计', align: 'center', templet: function (item) {
+                                return '￥' + item.goodsPrice * item.buyCount;
+                            }
+                        }
+                    ]
+                ]
+                , data: data
+            });
+        };
+    });
+
+    //我要购物
+    let goShopping = function () {
+        window.location.href = '/index/buy';
+    };
+</script>
+</html>

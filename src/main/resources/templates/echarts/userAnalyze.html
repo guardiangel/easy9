@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>用户相关信息统计表</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <script src="/js/jquery-2.0.3.js"></script>
+    <script src="/layui/layui.all.js"></script>
+    <script src="/js/core.util.js"></script>
+    <script src="/js/echarts/echarts.min.js"></script>
+    <style>
+        .memberData {
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .e-chart {
+            position: relative;
+            height: 380px;
+            width: 500px;
+            margin-right: 22px;
+            float: left;
+            background: #fff;
+            padding-left: 18px;
+            margin-top: 20px;
+        }
+
+        .e-chart-style {
+            width: 100%;
+            height: 260px;
+        }
+
+        .newaddmember_t {
+            winth: 100%;
+            line-height: 30px;
+            height: 30px;
+            color: #666;
+            font-size: 12px;
+            padding-right: 18px;
+        }
+
+        .newaddmember_t .underline {;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+            color: black;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="memberData">
+    <div class="e-chart">
+        <div class="newaddmember_t">
+            <div class="underline">各部门人数统计图：</div>
+        </div>
+        <div class="e-chart-style" shiro:hasPermission="echarts:userEcharts" id="mychart1"></div>
+    </div>
+    <div class="e-chart">
+        <div class="newaddmember_t">
+            <div class="underline">各性别人数统计图：</div>
+        </div>
+        <div class="e-chart-style" shiro:hasPermission="echarts:userEcharts" id="mychart2"></div>
+    </div>
+    <div class="e-chart">
+        <div class="newaddmember_t">
+            <div class="underline">各角色人数统计图：</div>
+        </div>
+        <div class="e-chart-style" shiro:hasPermission="echarts:userEcharts" id="mychart3"></div>
+    </div>
+    <div class="e-chart">
+        <div class="newaddmember_t">
+            <div class="underline">各工资段人数统计图：</div>
+        </div>
+        <div class="e-chart-style" shiro:hasPermission="echarts:userEcharts" id="mychart4"></div>
+    </div>
+</div>
+<script type="text/javascript">
+    var myChart1 = echarts.init(document.getElementById('mychart1'));
+    var myChart2 = echarts.init(document.getElementById('mychart2'));
+    var myChart3 = echarts.init(document.getElementById('mychart3'));
+    var myChart4 = echarts.init(document.getElementById('mychart4'));
+
+    $(function () {
+        CoreUtil.sendAjax("/echarts/userEcharts/1", null, function (res) {
+            var obj_name = res.data.name;
+            var count = res.data.count;
+            var option1 = {
+                //提示框，鼠标悬浮交互时的信息提示
+                tooltip : {
+                    show : true,//显示策略，可选为：true（显示） | false（隐藏）
+                    trigger: 'item',//触发类型，默认数据触发，见下图，可选为：'item' | 'axis'
+                    formatter: "{a} <br/>{b} : {c}人 ({d}%)"
+                },
+                //工具箱，每个图表最多仅有一个工具箱
+                toolbox: {
+                    show : true,//显示策略，可选为：true（显示） | false（隐藏）
+                    feature : {
+                        mark : {show: true},
+                        //数据视图
+                        dataView : {show: false, readOnly: true},
+                        restore : {
+                            title: '还原',
+                            show: true
+                        },
+                        saveAsImage : {
+                            name: '部门人数占比统计图', //保存图片文件的名称
+                            title: '保存',
+                            type: 'png'
+                        }
+                    }
+                },
+                //图例，每个图表最多仅有一个图例，混搭图表共享
+                legend : {
+                    orient: 'vertical',//布局方式，默认为水平布局，可选为：'horizontal' | 'vertical'
+                    x: 'left',//水平安放位置，默认为全图居中，可选为：'center' | 'left' | 'right' | {number}（x坐标，单位px）
+                    data: obj_name
+                },
+                series : [
+                    {
+                        name:'部门人数占比',
+                        type:'pie',
+                        radius : '55%',
+                        center: ['50%', '60%'],
+                        data: count
+                    }
+                ]
+            };
+            myChart1.setOption(option1);
+        }, "GET", false, function (res) {
+            layer.msg(res.msg);
+        });
+
+        CoreUtil.sendAjax("/echarts/userEcharts/2", null, function (res) {
+            var obj_name = res.data.name;
+            var count = res.data.count;
+            var option2 = {
+                //提示框，鼠标悬浮交互时的信息提示
+                tooltip : {
+                    show : true,//显示策略，可选为：true（显示） | false（隐藏）
+                    trigger: 'item',//触发类型，默认数据触发，见下图，可选为：'item' | 'axis'
+                    formatter: "{a} <br/>{b} : {c}人 ({d}%)"
+                },
+                //工具箱，每个图表最多仅有一个工具箱
+                toolbox: {
+                    show : true,//显示策略，可选为：true（显示） | false（隐藏）
+                    feature : {
+                        mark : {show: true},
+                        //数据视图
+                        dataView : {show: false, readOnly: true},
+                        restore : {
+                            title: '还原',
+                            show: true
+                        },
+                        saveAsImage : {
+                            name: '性别占比统计图', //保存图片文件的名称
+                            title: '保存',
+                            type: 'png'
+                        }
+                    }
+                },
+                //图例，每个图表最多仅有一个图例，混搭图表共享
+                legend : {
+                    orient: 'vertical',//布局方式，默认为水平布局，可选为：'horizontal' | 'vertical'
+                    x: 'left',//水平安放位置，默认为全图居中，可选为：'center' | 'left' | 'right' | {number}（x坐标，单位px）
+                    data: obj_name
+                },
+                series : [
+                    {
+                        name:'性别占比',
+                        type:'pie',
+                        radius : '55%',
+                        center: ['50%', '60%'],
+                        data: count
+                    }
+                ]
+            };
+            myChart2.setOption(option2);
+        }, "GET", false, function (res) {
+            layer.msg(res.msg);
+        });
+
+        CoreUtil.sendAjax("/echarts/userEcharts/3", null, function (res) {
+            var obj_name = res.data.name;
+            var count = res.data.count;
+            var option3 = {
+                //提示框，鼠标悬浮交互时的信息提示
+                tooltip : {
+                    show : true,//显示策略，可选为：true（显示） | false（隐藏）
+                    trigger: 'item',//触发类型，默认数据触发，见下图，可选为：'item' | 'axis'
+                    formatter: "{a} <br/>{b} : {c}人 ({d}%)"
+                },
+                //工具箱，每个图表最多仅有一个工具箱
+                toolbox: {
+                    show : true,//显示策略，可选为：true（显示） | false（隐藏）
+                    feature : {
+                        mark : {show: true},
+                        //数据视图
+                        dataView : {show: false, readOnly: true},
+                        restore : {
+                            title: '还原',
+                            show: true
+                        },
+                        saveAsImage : {
+                            name: '角色人数占比统计图', //保存图片文件的名称
+                            title: '保存',
+                            type: 'png'
+                        }
+                    }
+                },
+                //图例，每个图表最多仅有一个图例，混搭图表共享
+                legend : {
+                    orient: 'vertical',//布局方式，默认为水平布局，可选为：'horizontal' | 'vertical'
+                    x: 'left',//水平安放位置，默认为全图居中，可选为：'center' | 'left' | 'right' | {number}（x坐标，单位px）
+                    data: obj_name
+                },
+                series : [
+                    {
+                        name:'角色人数占比',
+                        type:'pie',
+                        radius : '55%',  // 饼图的半径，外半径为可视区尺寸（容器高宽中较小一项）的 55% 长度。
+                        center: ['50%', '60%'],
+                        data: count
+                    }
+                ]
+            };
+            myChart3.setOption(option3);
+        }, "GET", false, function (res) {
+            layer.msg(res.msg);
+        });
+        CoreUtil.sendAjax("/echarts/userEcharts/4", null, function (res) {
+            var obj_name = res.data.name;
+            var count = res.data.count;
+            var option4 = {
+                //提示框，鼠标悬浮交互时的信息提示
+                tooltip : {
+                    show : true,//显示策略，可选为：true（显示） | false（隐藏）
+                    trigger: 'item',//触发类型，默认数据触发，见下图，可选为：'item' | 'axis'
+                    formatter: "{a} <br/>{b} : {c}人 ({d}%)"
+                },
+                //工具箱，每个图表最多仅有一个工具箱
+                toolbox: {
+                    show : true,//显示策略，可选为：true（显示） | false（隐藏）
+                    feature : {
+                        mark : {show: true},
+                        //数据视图
+                        dataView : {show: false, readOnly: true},
+                        restore : {
+                            title: '还原',
+                            show: true
+                        },
+                        saveAsImage : {
+                            name: '各工资人数占比统计图', //保存图片文件的名称
+                            title: '保存',
+                            type: 'png'
+                        }
+                    }
+                },
+                //图例，每个图表最多仅有一个图例，混搭图表共享
+                legend : {
+                    orient: 'vertical',//布局方式，默认为水平布局，可选为：'horizontal' | 'vertical'
+                    x: 'left',//水平安放位置，默认为全图居中，可选为：'center' | 'left' | 'right' | {number}（x坐标，单位px）
+                    data: obj_name
+                },
+                series : [
+                    {
+                        name:'各工资人数占比',
+                        type:'pie',
+                        radius : '55%',  // 饼图的半径，外半径为可视区尺寸（容器高宽中较小一项）的 55% 长度。
+                        center: ['50%', '60%'],
+                        data: count
+                    }
+                ]
+            };
+            myChart4.setOption(option4);
+        }, "GET", false, function (res) {
+            layer.msg(res.msg);
+        });
+    });
+
+    //图表自适应
+    // window.onload = function(){
+    //     window.onresize = function () {
+    //         // myChart.resize();
+    //         myChart1.resize();
+    //     }
+    // }
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>意见反馈页面</title>
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+</head>
+<body>
+<div class="layui-container" style="width:600px;">
+    <form class="layui-form layui-form-pane" action="" lay-filter="userInfo">
+        <input type="hidden" name="type" value="1"/>
+        <div class="layui-form-item">
+            <label class="layui-form-label">意见反馈</label>
+            <div class="layui-input-block">
+                <textarea name="content" placeholder="请输入意见反馈内容" lay-verify="required" class="layui-textarea" maxlength="230"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button type="submit" class="layui-btn" lay-submit="" lay-filter="submit">提交</button>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+<script src="/layui/layui.all.js"></script>
+<script src="/js/core.util.js"></script>
+<script>
+    let layer = layui.layer;
+    let $ = jQuery = layui.jquery;
+    let form = layui.form;
+
+    //监听提交
+    form.on('submit(submit)', function (data) {
+        console.log(data);
+        CoreUtil.sendAjax("/sys/suggestion/insertSuggestion", JSON.stringify(data.field), function (res) {
+            layer.msg(res.msg);
+        }, "POST", false, function (res) {
+            layer.msg(res.msg);
+        });
+        return false;
+    });
+</script>
+</html>

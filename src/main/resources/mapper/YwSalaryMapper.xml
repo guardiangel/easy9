@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.colin.mapper.yw.YwSalaryMapper">
+
+  <resultMap id="BaseResultMap" type="org.colin.model.entity.yw.YwSalary">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="create_user_id" jdbcType="VARCHAR" property="createUserId" />
+    <result column="dept_id" jdbcType="VARCHAR" property="deptId" />
+    <result column="user_id" jdbcType="VARCHAR" property="userId" />
+    <result column="salary_year" jdbcType="VARCHAR" property="salaryYear" />
+    <result column="salary_month" jdbcType="VARCHAR" property="salaryMonth" />
+    <result column="month_salary" jdbcType="DECIMAL" property="monthSalary" />
+    <result column="bonus" jdbcType="DECIMAL" property="bonus" />
+    <result column="travel_allowance" jdbcType="DECIMAL" property="travelAllowance" />
+    <result column="dept_achievements" jdbcType="DECIMAL" property="deptAchievements" />
+    <result column="quarter_achievements" jdbcType="DECIMAL" property="quarterAchievements" />
+    <result column="special_subsidy" jdbcType="DECIMAL" property="specialSubsidy" />
+    <result column="attendance_subsidy" jdbcType="DECIMAL" property="attendanceSubsidy" />
+    <result column="alltime_bonus" jdbcType="DECIMAL" property="alltimeBonus" />
+    <result column="workyear_bonus" jdbcType="DECIMAL" property="workyearBonus" />
+    <result column="yanglao_insurance" jdbcType="DECIMAL" property="yanglaoInsurance" />
+    <result column="yiliao_insurance" jdbcType="DECIMAL" property="yiliaoInsurance" />
+    <result column="shiye_insurance" jdbcType="DECIMAL" property="shiyeInsurance" />
+    <result column="gongshang_insurance" jdbcType="DECIMAL" property="gongshangInsurance" />
+    <result column="shengyu_insurance" jdbcType="DECIMAL" property="shengyuInsurance" />
+    <result column="public_accumulation_funds" jdbcType="DECIMAL" property="publicAccumulationFunds" />
+    <result column="pay_taxes" jdbcType="DECIMAL" property="payTaxes" />
+    <result column="punish" jdbcType="DECIMAL" property="punish" />
+    <result column="attendance_punish" jdbcType="DECIMAL" property="attendancePunish" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, create_time, create_user_id, dept_id, user_id, salary_year, salary_month, month_salary, 
+    bonus, travel_allowance, dept_achievements, quarter_achievements, special_subsidy, 
+    attendance_subsidy, alltime_bonus, workyear_bonus, yanglao_insurance, yiliao_insurance, 
+    shiye_insurance, gongshang_insurance, shengyu_insurance, public_accumulation_funds, 
+    pay_taxes, punish, attendance_punish
+  </sql>
+
+  <!--分页查询所有工资记录信息-->
+  <select id="selectAll" parameterType="org.colin.model.vo.req.SalaryPageReqVO" resultType="org.colin.model.vo.resp.YwSalaryVO">
+    select
+      t1.id, t1.create_time, t1.create_user_id, t1.dept_id, t1.user_id, t1.salary_year, t1.salary_month, t1.month_salary,
+      t1.bonus, t1.travel_allowance, t1.dept_achievements, t1.quarter_achievements, t1.special_subsidy,
+      t1.attendance_subsidy, t1.alltime_bonus, t1.workyear_bonus, t1.yanglao_insurance, t1.yiliao_insurance,
+      t1.shiye_insurance, t1.gongshang_insurance, t1.shengyu_insurance, t1.public_accumulation_funds,
+      t1.pay_taxes, t1.punish, t1.attendance_punish,
+      t2.real_name as createUserIdName, t3.real_name as userIdName, t4.name as deptIdName
+    from yw_salary t1
+        left join sys_user t2 on t1.create_user_id = t2.id
+        left join sys_user t3 on t1.user_id = t3.id
+        left join sys_dept t4 on t1.dept_id = t4.id
+    <where>
+      <if test="salaryYear != null and salaryYear != ''">
+        AND t1.salary_year = #{salaryYear}
+      </if>
+      <if test="salaryMonth != null and salaryMonth != ''">
+        AND t1.salary_month = #{salaryMonth}
+      </if>
+      <if test="deptName != null and deptName != ''">
+        AND t4.name LIKE concat('%', #{deptName},'%')
+      </if>
+      <if test="realName != null and realName != ''">
+        AND t3.real_name LIKE concat('%', #{realName},'%')
+      </if>
+    </where>
+    order by t1.create_time desc
+  </select>
+
+  <!--根据条件查询所有数据导出-->
+  <select id="selectAllExport" parameterType="org.colin.model.vo.req.SalaryPageReqVO" resultType="org.colin.model.entity.ExportSalaryBean">
+    select
+      t1.id, t1.create_time, t1.create_user_id, t1.dept_id, t1.user_id, t1.salary_year, t1.salary_month, t1.month_salary,
+      t1.bonus, t1.travel_allowance, t1.dept_achievements, t1.quarter_achievements, t1.special_subsidy,
+      t1.attendance_subsidy, t1.alltime_bonus, t1.workyear_bonus, t1.yanglao_insurance, t1.yiliao_insurance,
+      t1.shiye_insurance, t1.gongshang_insurance, t1.shengyu_insurance, t1.public_accumulation_funds,
+      t1.pay_taxes, t1.punish, t1.attendance_punish,
+      t2.real_name as createUserIdName, t3.real_name as userIdName, t4.name as deptIdName
+    from yw_salary t1
+        left join sys_user t2 on t1.create_user_id = t2.id
+        left join sys_user t3 on t1.user_id = t3.id
+        left join sys_dept t4 on t1.dept_id = t4.id
+    <where>
+      <if test="salaryYear != null and salaryYear != ''">
+        AND t1.salary_year = #{salaryYear}
+      </if>
+      <if test="salaryMonth != null and salaryMonth != ''">
+        AND t1.salary_month = #{salaryMonth}
+      </if>
+      <if test="deptName != null and deptName != ''">
+        AND t4.name LIKE concat('%', #{deptName},'%')
+      </if>
+      <if test="realName != null and realName != ''">
+        AND t3.real_name LIKE concat('%', #{realName},'%')
+      </if>
+    </where>
+    order by t1.create_time desc
+  </select>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from yw_salary
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from yw_salary
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="org.colin.model.entity.yw.YwSalary">
+    insert into yw_salary (id, create_time, create_user_id, 
+      dept_id, user_id, salary_year, 
+      salary_month, month_salary, bonus, 
+      travel_allowance, dept_achievements, quarter_achievements, 
+      special_subsidy, attendance_subsidy, alltime_bonus, 
+      workyear_bonus, yanglao_insurance, yiliao_insurance, 
+      shiye_insurance, gongshang_insurance, shengyu_insurance, 
+      public_accumulation_funds, pay_taxes, punish, 
+      attendance_punish)
+    values (#{id,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{createUserId,jdbcType=VARCHAR}, 
+      #{deptId,jdbcType=VARCHAR}, #{userId,jdbcType=VARCHAR}, #{salaryYear,jdbcType=VARCHAR}, 
+      #{salaryMonth,jdbcType=VARCHAR}, #{monthSalary,jdbcType=DECIMAL}, #{bonus,jdbcType=DECIMAL}, 
+      #{travelAllowance,jdbcType=DECIMAL}, #{deptAchievements,jdbcType=DECIMAL}, #{quarterAchievements,jdbcType=DECIMAL}, 
+      #{specialSubsidy,jdbcType=DECIMAL}, #{attendanceSubsidy,jdbcType=DECIMAL}, #{alltimeBonus,jdbcType=DECIMAL}, 
+      #{workyearBonus,jdbcType=DECIMAL}, #{yanglaoInsurance,jdbcType=DECIMAL}, #{yiliaoInsurance,jdbcType=DECIMAL}, 
+      #{shiyeInsurance,jdbcType=DECIMAL}, #{gongshangInsurance,jdbcType=DECIMAL}, #{shengyuInsurance,jdbcType=DECIMAL}, 
+      #{publicAccumulationFunds,jdbcType=DECIMAL}, #{payTaxes,jdbcType=DECIMAL}, #{punish,jdbcType=DECIMAL}, 
+      #{attendancePunish,jdbcType=DECIMAL})
+  </insert>
+  <insert id="insertSelective" parameterType="org.colin.model.vo.req.SalaryAddReqVO">
+    insert into yw_salary
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="createUserId != null">
+        create_user_id,
+      </if>
+      <if test="deptId != null">
+        dept_id,
+      </if>
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="salaryYear != null">
+        salary_year,
+      </if>
+      <if test="salaryMonth != null">
+        salary_month,
+      </if>
+      <if test="monthSalary != null">
+        month_salary,
+      </if>
+      <if test="bonus != null">
+        bonus,
+      </if>
+      <if test="travelAllowance != null">
+        travel_allowance,
+      </if>
+      <if test="deptAchievements != null">
+        dept_achievements,
+      </if>
+      <if test="quarterAchievements != null">
+        quarter_achievements,
+      </if>
+      <if test="specialSubsidy != null">
+        special_subsidy,
+      </if>
+      <if test="attendanceSubsidy != null">
+        attendance_subsidy,
+      </if>
+      <if test="alltimeBonus != null">
+        alltime_bonus,
+      </if>
+      <if test="workyearBonus != null">
+        workyear_bonus,
+      </if>
+      <if test="yanglaoInsurance != null">
+        yanglao_insurance,
+      </if>
+      <if test="yiliaoInsurance != null">
+        yiliao_insurance,
+      </if>
+      <if test="shiyeInsurance != null">
+        shiye_insurance,
+      </if>
+      <if test="gongshangInsurance != null">
+        gongshang_insurance,
+      </if>
+      <if test="shengyuInsurance != null">
+        shengyu_insurance,
+      </if>
+      <if test="publicAccumulationFunds != null">
+        public_accumulation_funds,
+      </if>
+      <if test="payTaxes != null">
+        pay_taxes,
+      </if>
+      <if test="punish != null">
+        punish,
+      </if>
+      <if test="attendancePunish != null">
+        attendance_punish,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createUserId != null">
+        #{createUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="deptId != null">
+        #{deptId,jdbcType=VARCHAR},
+      </if>
+      <if test="userId != null">
+        #{userId,jdbcType=VARCHAR},
+      </if>
+      <if test="salaryYear != null">
+        #{salaryYear,jdbcType=VARCHAR},
+      </if>
+      <if test="salaryMonth != null">
+        #{salaryMonth,jdbcType=VARCHAR},
+      </if>
+      <if test="monthSalary != null">
+        #{monthSalary,jdbcType=DECIMAL},
+      </if>
+      <if test="bonus != null">
+        #{bonus,jdbcType=DECIMAL},
+      </if>
+      <if test="travelAllowance != null">
+        #{travelAllowance,jdbcType=DECIMAL},
+      </if>
+      <if test="deptAchievements != null">
+        #{deptAchievements,jdbcType=DECIMAL},
+      </if>
+      <if test="quarterAchievements != null">
+        #{quarterAchievements,jdbcType=DECIMAL},
+      </if>
+      <if test="specialSubsidy != null">
+        #{specialSubsidy,jdbcType=DECIMAL},
+      </if>
+      <if test="attendanceSubsidy != null">
+        #{attendanceSubsidy,jdbcType=DECIMAL},
+      </if>
+      <if test="alltimeBonus != null">
+        #{alltimeBonus,jdbcType=DECIMAL},
+      </if>
+      <if test="workyearBonus != null">
+        #{workyearBonus,jdbcType=DECIMAL},
+      </if>
+      <if test="yanglaoInsurance != null">
+        #{yanglaoInsurance,jdbcType=DECIMAL},
+      </if>
+      <if test="yiliaoInsurance != null">
+        #{yiliaoInsurance,jdbcType=DECIMAL},
+      </if>
+      <if test="shiyeInsurance != null">
+        #{shiyeInsurance,jdbcType=DECIMAL},
+      </if>
+      <if test="gongshangInsurance != null">
+        #{gongshangInsurance,jdbcType=DECIMAL},
+      </if>
+      <if test="shengyuInsurance != null">
+        #{shengyuInsurance,jdbcType=DECIMAL},
+      </if>
+      <if test="publicAccumulationFunds != null">
+        #{publicAccumulationFunds,jdbcType=DECIMAL},
+      </if>
+      <if test="payTaxes != null">
+        #{payTaxes,jdbcType=DECIMAL},
+      </if>
+      <if test="punish != null">
+        #{punish,jdbcType=DECIMAL},
+      </if>
+      <if test="attendancePunish != null">
+        #{attendancePunish,jdbcType=DECIMAL},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="org.colin.model.entity.yw.YwSalary">
+    update yw_salary
+    <set>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createUserId != null">
+        create_user_id = #{createUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="deptId != null">
+        dept_id = #{deptId,jdbcType=VARCHAR},
+      </if>
+      <if test="userId != null">
+        user_id = #{userId,jdbcType=VARCHAR},
+      </if>
+      <if test="salaryYear != null">
+        salary_year = #{salaryYear,jdbcType=VARCHAR},
+      </if>
+      <if test="salaryMonth != null">
+        salary_month = #{salaryMonth,jdbcType=VARCHAR},
+      </if>
+      <if test="monthSalary != null">
+        month_salary = #{monthSalary,jdbcType=DECIMAL},
+      </if>
+      <if test="bonus != null">
+        bonus = #{bonus,jdbcType=DECIMAL},
+      </if>
+      <if test="travelAllowance != null">
+        travel_allowance = #{travelAllowance,jdbcType=DECIMAL},
+      </if>
+      <if test="deptAchievements != null">
+        dept_achievements = #{deptAchievements,jdbcType=DECIMAL},
+      </if>
+      <if test="quarterAchievements != null">
+        quarter_achievements = #{quarterAchievements,jdbcType=DECIMAL},
+      </if>
+      <if test="specialSubsidy != null">
+        special_subsidy = #{specialSubsidy,jdbcType=DECIMAL},
+      </if>
+      <if test="attendanceSubsidy != null">
+        attendance_subsidy = #{attendanceSubsidy,jdbcType=DECIMAL},
+      </if>
+      <if test="alltimeBonus != null">
+        alltime_bonus = #{alltimeBonus,jdbcType=DECIMAL},
+      </if>
+      <if test="workyearBonus != null">
+        workyear_bonus = #{workyearBonus,jdbcType=DECIMAL},
+      </if>
+      <if test="yanglaoInsurance != null">
+        yanglao_insurance = #{yanglaoInsurance,jdbcType=DECIMAL},
+      </if>
+      <if test="yiliaoInsurance != null">
+        yiliao_insurance = #{yiliaoInsurance,jdbcType=DECIMAL},
+      </if>
+      <if test="shiyeInsurance != null">
+        shiye_insurance = #{shiyeInsurance,jdbcType=DECIMAL},
+      </if>
+      <if test="gongshangInsurance != null">
+        gongshang_insurance = #{gongshangInsurance,jdbcType=DECIMAL},
+      </if>
+      <if test="shengyuInsurance != null">
+        shengyu_insurance = #{shengyuInsurance,jdbcType=DECIMAL},
+      </if>
+      <if test="publicAccumulationFunds != null">
+        public_accumulation_funds = #{publicAccumulationFunds,jdbcType=DECIMAL},
+      </if>
+      <if test="payTaxes != null">
+        pay_taxes = #{payTaxes,jdbcType=DECIMAL},
+      </if>
+      <if test="punish != null">
+        punish = #{punish,jdbcType=DECIMAL},
+      </if>
+      <if test="attendancePunish != null">
+        attendance_punish = #{attendancePunish,jdbcType=DECIMAL},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.colin.model.entity.yw.YwSalary">
+    update yw_salary
+    set create_time = #{createTime,jdbcType=TIMESTAMP},
+      create_user_id = #{createUserId,jdbcType=VARCHAR},
+      dept_id = #{deptId,jdbcType=VARCHAR},
+      user_id = #{userId,jdbcType=VARCHAR},
+      salary_year = #{salaryYear,jdbcType=VARCHAR},
+      salary_month = #{salaryMonth,jdbcType=VARCHAR},
+      month_salary = #{monthSalary,jdbcType=DECIMAL},
+      bonus = #{bonus,jdbcType=DECIMAL},
+      travel_allowance = #{travelAllowance,jdbcType=DECIMAL},
+      dept_achievements = #{deptAchievements,jdbcType=DECIMAL},
+      quarter_achievements = #{quarterAchievements,jdbcType=DECIMAL},
+      special_subsidy = #{specialSubsidy,jdbcType=DECIMAL},
+      attendance_subsidy = #{attendanceSubsidy,jdbcType=DECIMAL},
+      alltime_bonus = #{alltimeBonus,jdbcType=DECIMAL},
+      workyear_bonus = #{workyearBonus,jdbcType=DECIMAL},
+      yanglao_insurance = #{yanglaoInsurance,jdbcType=DECIMAL},
+      yiliao_insurance = #{yiliaoInsurance,jdbcType=DECIMAL},
+      shiye_insurance = #{shiyeInsurance,jdbcType=DECIMAL},
+      gongshang_insurance = #{gongshangInsurance,jdbcType=DECIMAL},
+      shengyu_insurance = #{shengyuInsurance,jdbcType=DECIMAL},
+      public_accumulation_funds = #{publicAccumulationFunds,jdbcType=DECIMAL},
+      pay_taxes = #{payTaxes,jdbcType=DECIMAL},
+      punish = #{punish,jdbcType=DECIMAL},
+      attendance_punish = #{attendancePunish,jdbcType=DECIMAL}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

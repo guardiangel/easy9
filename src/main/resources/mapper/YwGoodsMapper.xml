@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.colin.mapper.yw.YwGoodsMapper">
+
+    <resultMap id="BaseResultMap" type="org.colin.model.entity.yw.YwGoods">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="pid" jdbcType="VARCHAR" property="pid"/>
+        <result column="goods_name" jdbcType="VARCHAR" property="goodsName"/>
+        <result column="goods_price" jdbcType="DECIMAL" property="goodsPrice"/>
+        <result column="status" jdbcType="INTEGER" property="status"/>
+        <result column="store_id" jdbcType="VARCHAR" property="storeId"/>
+        <result column="stock" jdbcType="INTEGER" property="stock"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="order_num" jdbcType="INTEGER" property="orderNum"/>
+        <result column="type" jdbcType="INTEGER" property="type"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, pid, goods_name, goods_price, status, store_id, stock, create_time, order_num, type
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from yw_goods
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from yw_goods
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+    <insert id="insert" parameterType="org.colin.model.entity.yw.YwGoods">
+    insert into yw_goods (id, pid, goods_name, 
+      goods_price, status, store_id, 
+      stock, create_time, order_num, type
+      )
+    values (#{id,jdbcType=VARCHAR}, #{pid,jdbcType=VARCHAR}, #{goodsName,jdbcType=VARCHAR},
+      #{goodsPrice,jdbcType=DECIMAL}, #{status,jdbcType=INTEGER}, #{storeId,jdbcType=VARCHAR}, 
+      #{stock,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{orderNum,jdbcType=INTEGER},#{type,jdbcType=INTEGER}
+      )
+  </insert>
+    <insert id="insertSelective" parameterType="org.colin.model.entity.yw.YwGoods">
+        insert into yw_goods
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="pid != null">
+                pid,
+            </if>
+            <if test="goodsName != null">
+                goods_name,
+            </if>
+            <if test="goodsPrice != null">
+                goods_price,
+            </if>
+            <if test="status != null">
+                status,
+            </if>
+            <if test="storeId != null">
+                store_id,
+            </if>
+            <if test="stock != null">
+                stock,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="orderNum != null">
+                order_num,
+            </if>
+            <if test="type != null">
+                type,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="pid != null">
+                #{pid,jdbcType=VARCHAR},
+            </if>
+            <if test="goodsName != null">
+                #{goodsName,jdbcType=VARCHAR},
+            </if>
+            <if test="goodsPrice != null">
+                #{goodsPrice,jdbcType=DECIMAL},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=INTEGER},
+            </if>
+            <if test="storeId != null">
+                #{storeId,jdbcType=VARCHAR},
+            </if>
+            <if test="stock != null">
+                #{stock,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="orderNum != null">
+                #{orderNum,jdbcType=INTEGER},
+            </if>
+            <if test="type != null">
+                #{type,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="org.colin.model.entity.yw.YwGoods">
+        update yw_goods
+        <set>
+            <if test="pid != null">
+                pid = #{pid,jdbcType=VARCHAR},
+            </if>
+            <if test="goodsName != null">
+                goods_name = #{goodsName,jdbcType=VARCHAR},
+            </if>
+            <if test="goodsPrice != null">
+                goods_price = #{goodsPrice,jdbcType=DECIMAL},
+            </if>
+            <if test="status != null">
+                status = #{status,jdbcType=INTEGER},
+            </if>
+            <if test="storeId != null">
+                store_id = #{storeId,jdbcType=VARCHAR},
+            </if>
+            <if test="stock != null">
+                stock = #{stock,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="orderNum != null">
+                order_num = #{orderNum,jdbcType=INTEGER},
+            </if>
+            <if test="type != null">
+                type = #{type,jdbcType=INTEGER},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="org.colin.model.entity.yw.YwGoods">
+    update yw_goods
+    set pid = #{pid,jdbcType=VARCHAR},
+      goods_name = #{goodsName,jdbcType=VARCHAR},
+      goods_price = #{goodsPrice,jdbcType=DECIMAL},
+      status = #{status,jdbcType=INTEGER},
+      store_id = #{storeId,jdbcType=VARCHAR},
+      stock = #{stock,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      order_num = #{orderNum,jdbcType=INTEGER},
+      type = #{type,jdbcType=INTEGER}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+
+    <select id="selectAllGoodsByStoreId" resultType="org.colin.model.vo.resp.YwGoodsVO" parameterType="java.lang.String">
+        select t1.id, t1.pid, t1.goods_name, t1.goods_price, t1.status, t1.store_id, t1.stock, t1.create_time, t1.order_num, t1.type, t2.store_name, t3.goods_name as goodsTypeName
+        from yw_goods t1 left join yw_store t2 on t1.store_id = t2.id LEFT JOIN yw_goods t3 on t1.pid = t3.id
+        where t1.type = 2
+        <if test="storeId != null and storeId != ''">
+            AND t1.store_id = #{storeId,jdbcType=VARCHAR}
+        </if>
+        ORDER BY t1.order_num ASC
+    </select>
+
+    <select id="getAllGoodsTypeByStoreId" resultType="org.colin.model.vo.resp.YwGoodsVO" parameterType="java.lang.String">
+        select t1.id, t1.pid, t1.goods_name, t1.goods_price, t1.status, t1.store_id, t1.stock, t1.create_time, t1.order_num, t1.type, t2.store_name
+        from yw_goods t1 left join yw_store t2 on t1.store_id = t2.id
+        where t1.type = 1
+        <if test="storeId != null and storeId != ''">
+            AND t1.store_id = #{storeId,jdbcType=VARCHAR}
+        </if>
+        ORDER BY t1.order_num ASC
+    </select>
+
+    <select id="selectAll" resultType="org.colin.model.vo.resp.YwGoodsVO" parameterType="org.colin.model.entity.yw.YwGoods">
+        select t1.id, t1.pid, t1.goods_name, t1.goods_price, t1.status, t1.store_id, t1.stock, t1.create_time, t1.order_num, t1.type, t2.store_name, t3.goods_name as goodsTypeName
+        from yw_goods t1 left join yw_store t2 on t1.store_id = t2.id LEFT JOIN yw_goods t3 on t1.pid = t3.id
+        <where>
+            <if test="goodsName != null and goodsName != ''">
+                AND t1.goods_name LIKE concat('%',#{goodsName},'%')
+            </if>
+            <if test="storeId != null and storeId != ''">
+                AND t1.store_id = #{storeId,jdbcType=VARCHAR}
+            </if>
+            <if test="status != null">
+                AND t1.status = #{status,jdbcType=INTEGER}
+            </if>
+        </where>
+        ORDER BY t1.order_num ASC
+    </select>
+
+    <select id="selectAllOrderByOrderNum" resultType="org.colin.model.vo.resp.YwOrderDetailVO" parameterType="java.lang.String">
+        select t1.total_price,t1.create_time,t2.order_number,t2.goods_name,t2.goods_price,t2.buy_count
+        from yw_order_master t1,yw_order_detail t2 where t1.order_number = t2.order_number and t2.order_number = #{orderNum}
+    </select>
+
+</mapper>

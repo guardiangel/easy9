@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title>用户列表页面</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/css/custom.form.css">
+    <style>
+    </style>
+</head>
+<body>
+<div id="searchParam" shiro:hasPermission="sys:user:list">
+    <div class="layui-form-item">
+        <div class="layui-input-inline">
+            <input type="text" id="userId" class="layui-input" autocomplete="off" placeholder="请输入用户ID">
+        </div>
+        <div class="layui-input-inline">
+            <input type="text" id="username" class="layui-input" autocomplete="off" placeholder="请输入账号">
+        </div>
+        <div class="layui-input-inline">
+            <input type="text" id="nickName" class="layui-input" autocomplete="off" placeholder="请输用户昵称">
+        </div>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" id="createTime" placeholder="创建时间">
+        </div>
+        <div class="layui-input-inline layui-form">
+            <select id="status">
+                <option value="">请选择账号状态</option>
+                <option value="1">正常</option>
+                <option value="2">禁用</option>
+            </select>
+        </div>
+        <div class="layui-input-inline ">
+            <button class="layui-btn" id="search">
+                <span class="layui-icon layui-icon-search"></span>查询
+            </button>
+        </div>
+    </div>
+</div>
+
+<table class="layui-hide" id="user_table" lay-filter="user_table" lay-skin="line"></table>
+<div id="laypage" class="$('.layui-laypage-btn').click();"></div>
+
+<!--部门树型-->
+<div id="deptTree" style="display: none"></div>
+
+<!--赋予角色-->
+<div id="roles" class="demo-transfer" style="display: none"></div>
+
+<!--
+这里是弹出层-编辑用户信息
+表单的id用于表单的选择，style是在本页隐藏，只有点击编辑才会弹出
+-->
+<div class="layui-row operation_user" id="edit-user-info" style="display:none;">
+    <form class="layui-form" action="" style="margin-top: 10px;margin-left: 10px;margin-right: 10px;" lay-filter="userEditFilter" id="userEditFilter" autocomplete="off">
+        <div class="layui-card-body">
+            <div class="main-div">
+                <input name="id" hidden/>
+                <input name="deptId" hidden/>
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 10px;">
+                    <legend>基础信息</legend>
+                </fieldset>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">登录账号</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="username" placeholder="请输入账号" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">密码</div>
+                        <div class="layui-input-block">
+                            <input type="password" name="password" placeholder="请输入密码" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">真实姓名</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="realName" placeholder="请输入真实姓名" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <div class="layui-form-label">手机号</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="phone" placeholder="请输入手机号" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">昵称</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="nickName" placeholder="请输入昵称" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">邮箱</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="email" placeholder="请输入邮箱" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <div class="layui-form-label">所属部门</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="deptName" placeholder="请选择部门" class="layui-input" readonly="readonly" style="background:#eeeeee!important">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">性别</div>
+                        <div class="layui-input-block">
+                            <input type="radio" name="sex" value="1" title="男" checked="">
+                            <input type="radio" name="sex" value="2" title="女">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <div class="layui-form-label">月薪</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="monthSalary" placeholder="请输入月薪" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">职位</div>
+                        <div class="layui-input-block">
+                            <select id="position" name="position" class="select">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">状态</label>
+                        <div class="layui-input-block">
+                            <input type="checkbox" value="" checked="" name="status" lay-skin="switch" lay-filter="switch-status" lay-text="启用|禁用"/>
+                        </div>
+                    </div>
+                </div>
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 10px;">
+                    <legend>扩展信息</legend>
+                </fieldset>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <div class="layui-form-label">工资卡号</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="wagesNumber" placeholder="请输入工资卡号" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">社保卡号</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="socialNumber" placeholder="请输入社保卡号" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">公积金卡号</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="providentFundNumber" placeholder="请输入公积金卡号" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <div class="layui-form-label">民族</div>
+                        <div class="layui-input-block">
+                            <select id="nation" name="nation" class="select">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">国籍</div>
+                        <div class="layui-input-block">
+                            <select id="country" name="country" class="select">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">家庭住址</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="homeAddress" placeholder="请输入家庭住址" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <div class="layui-form-label">居住地址</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="liveAddress" placeholder="请输入居住地址" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">身份证号</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="idNumber" placeholder="请输入身份证号" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">毕业院校</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="graduationSchool" placeholder="请输入毕业院校" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <div class="layui-form-label">学历</div>
+                        <div class="layui-input-block">
+                            <select id="education" name="education" class="select">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">政治面貌</div>
+                        <div class="layui-input-block">
+                            <select id="identity" name="identity" class="select">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">身高</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="height" placeholder="请输入身高(CM)" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <div class="layui-form-label">体重</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="weight" placeholder="请输入体重(KG)" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">血型</div>
+                        <div class="layui-input-block">
+                            <select id="bloodType" name="bloodType" class="select">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">专业</div>
+                        <div class="layui-input-block">
+                            <select id="major" name="major" class="select">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <div class="layui-form-label">QQ</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="qq" placeholder="请输入QQ" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">微信号</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="webchat" placeholder="请输入微信号" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">婚姻状态</div>
+                        <div class="layui-input-block">
+                            <select id="marriage" name="marriage" class="select">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <div class="layui-form-label">MSN</div>
+                        <div class="layui-input-block">
+                            <input type="text" name="msn" placeholder="请输入MSN" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <div class="layui-form-label">是否服军役</div>
+                        <div class="layui-input-block">
+                            <select name="militaryService" class="select">
+                                <option value="">请选择</option>
+                                <option value="0">未服军役</option>
+                                <option value="1">服过军役</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div style="text-align: center;">
+                <button type="submit" class="layui-btn" lay-submit="" lay-filter="edit-user-submit">保存</button>
+                <button class="layui-btn layui-btn-primary" id="btn_cancel">返回</button>
+            </div>
+        </div>
+    </form>
+</div>
+<div id="userInfoDetailDiv" style="display:none;">
+    <div class="layui-tab layui-tab-brief" lay-filter="mainTab">
+        <ul class="layui-tab-title">
+            <li class="layui-this">用户信息</li>
+            <li>用户扩展信息</li>
+        </ul>
+        <div class="layui-tab-content">
+            <div class="layui-tab-item layui-show">
+                <div style="margin-left: 100px;margin-top: 20px;line-height: 40px;">
+                    <div style="min-height: 30px;margin-bottom: 10px;">
+                        <img src="" id="photo" style="width: 95px;height: 95px;"/>
+                    </div>
+                    <div style="min-height: 30px;">
+                        真实姓名：<span id="realName"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        登录帐号：<span id="username2"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        昵称：<span id="nickName2"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        性别：<span id="sex"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        所属部门：<span id="deptName"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        职位：<span id="position2"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        手机号：<span id="phone"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        邮箱：<span id="email"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        月薪：<span id="monthSalary"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        积分：<span id="point"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        账号状态：<span id="status2"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        创建来源：<span id="createWhere"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        创建人：<span id="createUserName2"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        创建时间：<span id="createTime2"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        更新人：<span id="updateUserName2"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        更新时间：<span id="updateTime2"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-tab-item">
+                <div style="margin-left: 100px;margin-top: 20px;line-height: 40px;">
+                    <div style="min-height: 30px;">
+                        工资卡号：<span id="wagesNumber"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        社保卡号：<span id="socialNumber"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        公积金卡号：<span id="providentFundNumber"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        民族：<span id="nationStr"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        国籍：<span id="countryStr"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        家庭住址：<span id="homeAddress"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        居住地址：<span id="liveAddress"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        身份证号：<span id="idNumber"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        毕业院校：<span id="graduationSchool"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        学历：<span id="educationStr"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        专业：<span id="majorStr"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        政治面貌：<span id="identityStr"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        身高：<span id="height"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        体重：<span id="weight"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        血型：<span id="bloodTypeStr"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        QQ：<span id="qq"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        微信：<span id="webchat"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        MSN：<span id="msn"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        婚姻状态：<span id="marriageStr"></span>
+                    </div>
+                    <div style="min-height: 30px;">
+                        是否服军役：<span id="militaryService"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-group">
+        <button type="button" class="layui-btn layui-btn-sm" lay-event="addNewUser" shiro:hasPermission="sys:user:add">
+            <i class="layui-icon">&#xe608;</i> 新增用户
+        </button>
+    </div>
+    <div class="layui-btn-group">
+        <button type="button" class="layui-btn layui-btn-sm" lay-event="batchDeleted" shiro:hasPermission="sys:user:deleted">
+            <i class="layui-icon">&#xe640;</i> 批量删除
+        </button>
+    </div>
+</script>
+<script type="text/html" id="tool">
+    <a class="layui-btn layui-btn-xs" lay-event="operationRole" shiro:hasPermission="sys:user:role:detail">赋予角色</a>
+    <a class="layui-btn layui-btn-xs" lay-event="edit" shiro:hasPermission="sys:user:update">编辑</a>
+    <a class="layui-btn layui-btn-xs" lay-event="userInfoDetail" shiro:hasPermission="sys:user:update">详情</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del" shiro:hasPermission="sys:user:deleted">删除</a>
+</script>
+<script src="/layui/layui.all.js"></script>
+<script src="/js/core.util.js"></script>
+<script>
+    let $ = jQuery = layui.jquery;
+    let layer = layui.layer
+        , form = layui.form
+        , laypage = layui.laypage
+        , table = layui.table
+        , tree = layui.tree
+        , element = layui.element
+        , laydate = layui.laydate
+        , transfer = layui.transfer;
+
+    layui.use(['layer', 'form', 'laypage', 'table', 'element'], function () {
+        //搜索条件
+        let searchParam = {
+            userId: null,
+            username: null,
+            status: null,
+            startTime: null,
+            endTime: null,
+            nickName: null,
+            pageNum: 1,
+            pageSize: 10
+        };
+
+        $(function () {
+            //填充数据字典select下拉框信息
+            setSelectData();
+        });
+
+        laydate.render({
+            elem: '#createTime'
+            , type: 'datetime'
+            , range: '~'
+            , done: function (value, date, endDate) {
+                if (value != null && value != undefined && value != "") {
+                    searchParam.startTime = value.split("~")[0];
+                    searchParam.endTime = value.split("~")[1];
+                } else {
+                    searchParam.startTime = null;
+                    searchParam.endTime = null;
+                }
+            }
+        });
+
+        //分页获取用户列表接口
+        CoreUtil.sendAjax("/sys/users", JSON.stringify(searchParam), function (res) {
+            laypageTable(res.data.totalRows, searchParam.pageNum);
+            if (res.data.list != null) {
+                loadTable(res.data.list);
+            }
+        }, "POST", false, function (res) {
+            layer.msg(res.msg);
+            let noAuthorityData = [];
+            loadTable(noAuthorityData);
+        });
+
+        //分页条
+        let laypageTable = function (count, currentPage) {
+            laypage.render({
+                elem: 'laypage'
+                , count: count
+                , limit: searchParam.pageSize
+                , layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip']
+                , curr: location.hash.replace('#!currentPage=', '') //获取起始页
+                , hash: 'currentPage' //自定义hash值
+                , limits: [10, 25, 50, 100, 300, 500, 2000]
+                , jump: function (obj, first) {
+                    if (!first) {
+                        searchParam.pageNum = obj.curr;
+                        searchParam.pageSize = obj.limit;
+                        CoreUtil.sendAjax("/sys/users", JSON.stringify(searchParam), function (res) {
+                            if (res.data.list != null) {
+                                loadTable(res.data.list);
+                                laypageTable(res.data.totalRows, searchParam.pageNum);
+                            }
+                        }, "POST", false, function (res) {
+                            layer.msg(res.msg);
+                            let noAuthorityData = [];
+                            loadTable(noAuthorityData);
+                        });
+                    }
+                }
+            });
+        };
+
+        //渲染table
+        let loadTable = function (data) {
+            // console.log(data);
+            table.render({
+                elem: '#user_table'
+                , cols: [
+                    [
+                        {type: 'checkbox', fixed: 'left'},
+                        {type: 'xuhao', fixed: 'left', title: '序号', width: 50, type: 'numbers'},
+                        {field: 'realName', title: '真实姓名', width: 120, event: 'userInfoDetail', style:'cursor: pointer;', fixed: 'left'},
+                        {field: 'username', title: '登录账号', width: 130, event: 'userInfoDetail', style:'cursor: pointer;'},
+                        {
+                            field: 'sex', title: '性别', width: 70, templet: function (item) {
+                                if (item.sex === 1) {
+                                    return '<a class="layui-btn layui-btn-xs">男</a>';
+                                }
+                                if (item.sex === 2) {
+                                    return '<a class="layui-btn layui-btn-danger layui-btn-xs">女</a>';
+                                }
+                            }
+                        },
+                        {field: 'monthSalary', title: '月薪', sort: true, width: 80},
+                        {field: 'phone', title: '手机号', width: 130},
+                        {field: 'point', title: '积分', sort: true, width: 80},
+                        {field: 'deptName', title: '所属部门', width: 120},
+                        {field: 'positionStr', title: '职位', width: 120},
+                        {
+                            field: 'status', title: '状态', width: 100, templet: function (item) {
+                                if (item.status == 1) {
+                                    return '<input type="checkbox" lay-skin="switch" lay-text="正常|禁用" checked disabled>';
+                                }
+                                if (item.status == 2) {
+                                    return '<input type="checkbox" lay-skin="switch" lay-text="正常|禁用" disabled>';
+                                }
+                            }
+                        },
+                        {field: 'email', title: '邮箱', width: 210},
+                        {field: 'createTime', title: '创建时间', sort: true, minWidth: 180},
+                        {field: 'createUserName', title: '创建人', sort: false, minWidth: 100},
+                        {field: 'updateTime', title: '更新时间', sort: true, minWidth: 180},
+                        {field: 'updateUserName', title: '更新人', sort: false, minWidth: 100},
+                        {
+                            field: 'createWhere', title: '注册涞源', width: 100, templet: function (item) {
+                                if (item.createWhere === 1) {
+                                    return "Web";
+                                }
+                                if (item.createWhere === 2) {
+                                    return "Android";
+                                }
+                                if (item.createWhere === 3) {
+                                    return "IOS";
+                                }
+                            }
+                        },
+                        {width: 260, toolbar: "#tool", title: '操作', fixed: 'right'}
+                    ]
+                ]
+                , data: data
+                , loading: true
+                , even: true
+                , limit: data.length
+                , toolbar: '#toolbar'
+                , defaultToolbar: ['filter', 'print', 'exports', {
+                    title: '提示' //标题
+                    , layEvent: 'LAYTABLE_TIPS' //事件名，用于 toolbar 事件中使用
+                    , icon: 'layui-icon-tips' //图标类名
+                }]
+            });
+        };
+
+        //监听表格头部工具栏事件
+        table.on('toolbar(user_table)', function (obj) {
+            let data = obj.data;
+            switch (obj.event) {
+                case 'addNewUser':
+                    //重置表单数据
+                    $("#userEditFilter")[0].reset();
+                    form.render();
+                    //打开弹框
+                    layer.open({
+                        //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                        type: 1,
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: "新增用户信息",
+                        area: ['100%', '100%'],
+                        content: $("#edit-user-info") //引用的弹出层的页面层的方式加载修改界面表单
+                    });
+                    //初始化部门树型
+                    initTree("");
+                    break;
+                case 'batchDeleted':
+                    let checkStatus = table.checkStatus(obj.config.id);
+                    let data2 = checkStatus.data;
+                    if (data2.length == 0) {
+                        layer.msg("请选择要删除的用户");
+                    } else {
+                        let userIds = [];
+                        $(data2).each(function (index, item) {
+                            userIds.push(item.id);
+                        });
+                        tipDialog(userIds, "");
+                    }
+                    break;
+                case 'LAYTABLE_TIPS':
+                    layer.msg("这是工具栏右侧自定义的一个图标按钮");
+                    break;
+            }
+        });
+
+        //监听行工具事件
+        table.on('tool(user_table)', function (obj) {
+            let data = obj.data;
+            switch (obj.event) {
+                case 'del':
+                    let userIds = [];
+                    userIds.push(data.id);
+                    tipDialog(userIds, data.username);
+                    break;
+                case 'edit':
+                    layer.open({
+                        //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                        type: 1,
+                        resize: false, //是否允许拉伸
+                        maxmin: false, //最大最小化
+                        title: "修改用户信息",
+                        area: ['100%', '100%'],
+                        content: $("#edit-user-info") //引用的弹出层的页面层的方式加载修改界面表单
+                    });
+                    //回显数据，填充表格
+                    setFormValue(obj);
+                    //初始化部门树型
+                    initTree("");
+                    break;
+                case 'operationRole':
+                    CoreUtil.sendAjax("/sys/user/roles/" + data.id, null, function (res) {
+                        initTransfer(res.data);
+                        layer.open({
+                            type: 1,
+                            offset: '1px',
+                            skin: 'layui-layer-molv',
+                            title: "赋予角色",
+                            area: ['80%', '100%'],
+                            shade: 0,
+                            shadeClose: false,
+                            content: jQuery("#roles"),
+                            btn: ['确定', '取消'],
+                            yes: function (index) {
+                                //获得右侧数据
+                                let roleIds = [];
+                                let getData = transfer.getData('ownData');
+                                if (getData.length == 0) {
+                                    layer.msg("请选择要赋予用户的角色");
+                                } else {
+                                    $(getData).each(function (index, item) {
+                                        roleIds.push(item.value);
+                                    });
+                                }
+                                CoreUtil.sendAjax("/sys/user/roles/" + data.id, JSON.stringify(roleIds), function (res) {
+                                    layer.msg(res.msg);
+                                    $(".layui-laypage-btn").click();
+                                }, "PUT", false, function (res) {
+                                    layer.msg(res.msg);
+                                });
+                                layer.close(index);
+                            }
+                        });
+                    }, "GET", false, function (res) {
+                        layer.msg(res.msg);
+                    });
+                    break;
+                case 'userInfoDetail':
+                    userInfoDetail(data.id, data.createUserName);//查看用户详情
+                    break;
+            }
+        });
+
+        //显示用户详细信息
+        let userInfoDetail = function(userId, createUserName){
+            CoreUtil.sendAjax("/sys/getUserInfoByUserId/" + userId, null, function (res) {
+                // console.log(res);
+                $("#photo").attr("src", res.data.photo);
+                $("#realName").html(res.data.realName);
+                $("#nickName2").html(res.data.nickName);
+                $("#username2").html(res.data.username);
+                if(res.data.sex == '1'){
+                    $("#sex").html("男");
+                }else{
+                    $("#sex").html("女");
+                }
+                $("#deptName").html(res.data.deptName);
+                $("#phone").html(res.data.phone);
+                $("#email").html(res.data.email);
+                $("#point").html(res.data.point);
+                $("#monthSalary").html(res.data.monthSalary);
+                if(res.data.status == '1'){
+                    $("#status2").html("正常");
+                }else{
+                    $("#status2").html("锁定");
+                }
+                if(res.data.createWhere == '1'){
+                    $("#createWhere").html("web");
+                }else if(res.data.createWhere == '2'){
+                    $("#createWhere").html("android");
+                }else if(res.data.createWhere == '3'){
+                    $("#createWhere").html("ios");
+                }
+                $("#createTime2").html(res.data.createTime);
+                $("#createUserName2").html(createUserName);
+                $("#updateTime2").html(res.data.updateUserName);
+                $("#updateUserName2").html(res.data.updateTime);
+                //用户扩展信息
+                $("#wagesNumber").html(res.data.wagesNumber);
+                $("#socialNumber").html(res.data.socialNumber);
+                $("#providentFundNumber").html(res.data.providentFundNumber);
+                $("#nationStr").html(res.data.nation);
+                $("#countryStr").html(res.data.country);
+                $("#homeAddress").html(res.data.homeAddress);
+                $("#liveAddress").html(res.data.liveAddress);
+                $("#idNumber").html(res.data.idNumber);
+                $("#graduationSchool").html(res.data.graduationSchool);
+                $("#educationStr").html(res.data.education);
+                $("#identityStr").html(res.data.identity);
+                $("#height").html(res.data.height);
+                $("#weight").html(res.data.weight);
+                $("#bloodTypeStr").html(res.data.bloodType);
+                $("#majorStr").html(res.data.major);
+                $("#qq").html(res.data.qq);
+                $("#webchat").html(res.data.webchat);
+                $("#marriageStr").html(res.data.marriage);
+                $("#msn").html(res.data.msn);
+                if(res.data.militaryService == '1'){
+                    $("#militaryService").html("服过军役");
+                }else{
+                    $("#militaryService").html("未服军役");
+                }
+                $("#position2").html(res.data.position);
+            }, "GET", false, function (res) {
+                // console.log(res);
+                layer.msg(res.msg);
+            });
+            layer.open({
+                //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                type: 1,
+                resize: false, //是否允许拉伸
+                maxmin: false, //最大最小化
+                title: "用户详情",
+                area: ['100%', '100%'],//宽，高
+                shadeClose: false, //点击弹层外区域关闭
+                content: $("#userInfoDetailDiv")
+            });
+        };
+
+        //回显数据，填充表格
+        function setFormValue(obj) {
+            // console.log(obj);
+            let data = obj.data;
+            let status_value = true;
+            if (data.status === 2) {
+                status_value = false;
+            }
+            form.val("userEditFilter", {
+                "username": data.username
+                , "id": data.id
+                , "deptId": data.deptId
+                , "password": data.password
+                , "phone": data.phone
+                , "deptName": data.deptName
+                , "realName": data.realName
+                , "nickName": data.nickName
+                , "email": data.email
+                , "monthSalary": data.monthSalary
+                , "sex": data.sex
+                , "status": status_value
+                , "wagesNumber": data.wagesNumber
+                , "socialNumber": data.socialNumber
+                , "providentFundNumber": data.providentFundNumber
+                , "nation": data.nation
+                , "country": data.country
+                , "homeAddress": data.homeAddress
+                , "liveAddress": data.liveAddress
+                , "idNumber": data.idNumber
+                , "graduationSchool": data.graduationSchool
+                , "education": data.education
+                , "identity": data.identity
+                , "height": data.height
+                , "weight": data.weight
+                , "bloodType": data.bloodType
+                , "major": data.major
+                , "qq": data.qq
+                , "webchat": data.webchat
+                , "marriage": data.marriage
+                , "msn": data.msn
+                , "militaryService": data.militaryService
+                , "position": data.position
+            });
+            form.render();
+        }
+
+        //监听用户状态开关
+        form.on('switch(switch-status)', function () {
+            $(".operation_user input[name=status]").attr('type', 'hidden').val(this.checked ? 1 : 2);
+        });
+
+        //查询按钮点击事件
+        $("#search").click(function () {
+            searchParam.userId = $("#userId").val();
+            searchParam.status = $("#status").val();
+            searchParam.username = $("#username").val();
+            searchParam.nickName = $("#nickName").val();
+            searchParam.pageNum = 1;
+            CoreUtil.sendAjax("/sys/users", JSON.stringify(searchParam), function (res) {
+                laypageTable(res.data.totalRows, searchParam.pageNum);
+                if (res.data.list != null) {
+                    loadTable(res.data.list);
+                }
+            }, "POST", false, function (res) {
+                layer.msg(res.msg);
+                let noAuthorityData = [];
+                loadTable(noAuthorityData);
+            });
+        });
+
+        //监听提交-编辑/新增用户信息弹框
+        form.on('submit(edit-user-submit)', function (data) {
+            if (data.field.id === undefined || data.field.id === null || data.field.id === "") {
+                CoreUtil.sendAjax("/sys/user", JSON.stringify(data.field), function (res) {
+                    layer.closeAll(); //疯狂模式，关闭所有层
+                    layer.msg(res.msg);
+                    $(".layui-laypage-btn").click();
+                }, "POST", false, function (res) {
+                    layer.msg(res.msg);
+                });
+            } else {
+                CoreUtil.sendAjax("/sys/user", JSON.stringify(data.field), function (res) {
+                    layer.closeAll(); //疯狂模式，关闭所有层
+                    layer.msg(res.msg);
+                    $(".layui-laypage-btn").click();
+                }, "PUT", false, function (res) {
+                    layer.msg(res.msg);
+                });
+            }
+            return false;
+        });
+
+        //请求部门树型数据
+        let initTree = function (id) {
+            let param = {deptId: id};
+            CoreUtil.sendAjax("/sys/dept/tree", param, function (res) {
+                loadDeptTree(res.data);
+            }, "GET", false, function (res) {
+                layer.msg(res.msg);
+                let noAuthorityData = [];
+                loadDeptTree(noAuthorityData);
+            });
+        };
+
+        //填充数据字典select下拉框信息
+        let setSelectData = function () {
+            CoreUtil.sendAjax("/sys/dic/getSelectDicByTypeCode", null, function (res) {
+                // console.log(res);
+                if(res != null && res.data != null && res.data.length > 0){
+                    $.each(res.data, function(index, item){
+                        if('100003' == item.typeCode){
+                            $("#nation").append(new Option("请选择民族", ""));
+                            if(item.dicInfo != null && item.dicInfo.length > 0){
+                                $.each(item.dicInfo, function(index2, item2){
+                                    //往下拉菜单里添加元素
+                                    $('#nation').append(new Option(item2.dicValue, item2.dicCode));
+                                });
+                            }else{
+                                $("#nation").append(new Option("暂无数据", ""));
+                            }
+                        }
+                        if('100002' == item.typeCode){
+                            $("#country").append(new Option("请选择国籍", ""));
+                            if(item.dicInfo != null && item.dicInfo.length > 0){
+                                $.each(item.dicInfo, function(index2, item2){
+                                    //往下拉菜单里添加元素
+                                    $('#country').append(new Option(item2.dicValue, item2.dicCode));
+                                });
+                            }else{
+                                $("#country").append(new Option("暂无数据", ""));
+                            }
+                        }
+                        if('100005' == item.typeCode){
+                            $("#education").append(new Option("请选择学历", ""));
+                            if(item.dicInfo != null && item.dicInfo.length > 0){
+                                $.each(item.dicInfo, function(index2, item2){
+                                    //往下拉菜单里添加元素
+                                    $('#education').append(new Option(item2.dicValue, item2.dicCode));
+                                });
+                            }else{
+                                $("#education").append(new Option("暂无数据", ""));
+                            }
+                        }
+                        if('100006' == item.typeCode){
+                            $("#identity").append(new Option("请选择政治面貌", ""));
+                            if(item.dicInfo != null && item.dicInfo.length > 0){
+                                $.each(item.dicInfo, function(index2, item2){
+                                    //往下拉菜单里添加元素
+                                    $('#identity').append(new Option(item2.dicValue, item2.dicCode));
+                                });
+                            }else{
+                                $("#identity").append(new Option("暂无数据", ""));
+                            }
+                        }
+                        if('100007' == item.typeCode){
+                            $("#bloodType").append(new Option("请选择血型", ""));
+                            if(item.dicInfo != null && item.dicInfo.length > 0){
+                                $.each(item.dicInfo, function(index2, item2){
+                                    //往下拉菜单里添加元素
+                                    $('#bloodType').append(new Option(item2.dicValue, item2.dicCode));
+                                });
+                            }else{
+                                $("#bloodType").append(new Option("暂无数据", ""));
+                            }
+                        }
+                        if('100008' == item.typeCode){
+                            $("#major").append(new Option("请选择专业", ""));
+                            if(item.dicInfo != null && item.dicInfo.length > 0){
+                                $.each(item.dicInfo, function(index2, item2){
+                                    //往下拉菜单里添加元素
+                                    $('#major').append(new Option(item2.dicValue, item2.dicCode));
+                                });
+                            }else{
+                                $("#major").append(new Option("暂无数据", ""));
+                            }
+                        }
+                        if('100009' == item.typeCode){
+                            $("#marriage").append(new Option("请选择婚姻状态", ""));
+                            if(item.dicInfo != null && item.dicInfo.length > 0){
+                                $.each(item.dicInfo, function(index2, item2){
+                                    //往下拉菜单里添加元素
+                                    $('#marriage').append(new Option(item2.dicValue, item2.dicCode));
+                                });
+                            }else{
+                                $("#marriage").append(new Option("暂无数据", ""));
+                            }
+                        }
+                        if('ZW20200813' == item.typeCode){
+                            $("#position").append(new Option("请选择职位", ""));
+                            if(item.dicInfo != null && item.dicInfo.length > 0){
+                                $.each(item.dicInfo, function(index2, item2){
+                                    //往下拉菜单里添加元素
+                                    $('#position').append(new Option(item2.dicValue, item2.dicCode));
+                                });
+                            }else{
+                                $("#position").append(new Option("暂无数据", ""));
+                            }
+                        }
+                    });
+                }else{
+                    layer.msg("数据字典信息无数据");
+                }
+            }, "GET", false, function (res) {
+                layer.msg(res.msg);
+            });
+            form.render("select");//菜单渲染 把内容加载进去
+        };
+
+        //渲染部门树型
+        let loadDeptTree = function (data) {
+            tree.render({
+                elem: '#deptTree'
+                , data: data
+                , onlyIconControl: true  //是否仅允许节点左侧图标控制展开收缩
+                , click: function (obj) {
+                    selectNode = obj;
+                    //layer.msg(JSON.stringify(selectNode.data.title));
+                }
+            });
+        };
+
+        //监听部门树型选择框
+        $(".operation_user input[name=deptName]").click(function () {
+            layer.open({
+                type: 1,
+                offset: '1px',
+                skin: 'layui-layer-molv',
+                title: "选择部门",
+                area: ['40%', '100%'],
+                shade: 0,
+                shadeClose: false,
+                content: jQuery("#deptTree"),
+                btn: ['确定', '取消'],
+                yes: function (index) {
+                    if (selectNode.data != null) {
+                        console.log(selectNode.data);
+                        //选中回显
+                        $(".operation_user input[name=deptId]").val(selectNode.data.id);
+                        $(".operation_user input[name=deptName]").val(selectNode.data.title);
+                    }
+                    layer.close(index);
+                }
+            });
+        });
+
+        //是否删除确认框
+        let tipDialog = function (userIds, username) {
+            layer.open({
+                content: '确定要删除' + username + '用户吗?',
+                yes: function (index, layero) {
+                    layer.close(index); //如果设定了yes回调，需进行手工关闭
+                    CoreUtil.sendAjax("/sys/user", JSON.stringify(userIds), function (res) {
+                        layer.msg(res.msg);
+                        $(".layui-laypage-btn").click();
+                    }, "DELETE", false, function (res) {
+                        layer.msg(res.msg);
+                    });
+                }
+            });
+        };
+
+        //初始化穿梭框
+        let initTransfer = function (data) {
+            transfer.render({
+                elem: '#roles'
+                , data: data.allRole
+                , title: ['赋予角色', '拥有角色']
+                , showSearch: true
+                , value: data.ownRoles
+                , id: 'ownData'
+                , parseData: function (res) {
+                    return {
+                        "value": res.id //数据值
+                        , "title": res.name //数据标题
+                    }
+                }
+            })
+        }
+    });
+</script>
+</html>
