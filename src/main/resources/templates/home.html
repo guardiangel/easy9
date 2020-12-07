@@ -34,11 +34,11 @@
             border-radius: 50%;
         }
 
-        .layui-tab-content{
+        .layui-tab-content {
             padding: 5px;
         }
 
-        .bottomDivClass{
+        .bottomDivClass {
             font-size: 15px;
             /*color: #00968a;*/
             text-align: center;
@@ -53,9 +53,10 @@
     <div class="layui-header">
         <div class="layui-logo" style="font-size: 22px;">
             <img src="/images/system_ico.png" style="width: 33px;height: 30px;"/>
-            <span id="sysNameId2"></span>
+            <span id="sysNameId2"></span><!--数据来自sys_config中的sys_value-->
         </div>
-        <a onclick="hideLeftMenu()" style="color: #009688; font-size: 10px;cursor: pointer;position: absolute;margin-left: 210px;margin-top: 18px;">
+        <a onclick="hideLeftMenu()"
+           style="color: #009688; font-size: 10px;cursor: pointer;position: absolute;margin-left: 210px;margin-top: 18px;">
             <img src="" id="menuImgId" style="width: 26px;height: 26px;"/>
         </a>
         <!-- 头部区域（可配合layui已有的水平导航） -->
@@ -75,9 +76,12 @@
                     <span id="nickName"></span>
                 </a>
                 <dl class="layui-nav-child">
-                    <dd><a href="javascript:;" data-id="userProper" data-title="修改资料" data-url="/index/users/info" class="menuNvaBar">我的资料</a></dd>
-                    <dd><a href="javascript:;" data-id="updatePassword" data-title="修改密码" data-url="/index/users/updatePassword" class="menuNvaBar">密码修改</a></dd>
-                    <dd><a href="javascript:;" data-id="suggestion" data-title="意见反馈" data-url="/index/addSuggestion" class="menuNvaBar">意见反馈</a></dd>
+                    <dd><a href="javascript:;" data-id="userProper" data-title="修改资料" data-url="/index/users/info"
+                           class="menuNvaBar">我的资料</a></dd>
+                    <dd><a href="javascript:;" data-id="updatePassword" data-title="修改密码"
+                           data-url="/index/users/updatePassword" class="menuNvaBar">密码修改</a></dd>
+                    <dd><a href="javascript:;" data-id="suggestion" data-title="意见反馈" data-url="/index/addSuggestion"
+                           class="menuNvaBar">意见反馈</a></dd>
                     <!--
                     <dd><a href="javascript:;" data-id="userSafe" data-title="安全设置" data-url="/index/users/password" class="menuNvaBar">更换密码</a></dd>
                     <dd><a href="javascript:;" data-id="userSafe" data-title="关于我们" data-url="/index/about" class="menuNvaBar">关于我们</a></dd>
@@ -109,7 +113,7 @@
                 </div>
             </div>
             <div class="bottomDivClass">
-<!--                <a target="_blank" href="http://www.beian.gov.cn" style=""><img src="/images/beian.png" style=""/><span style="color:#1e9fff;margin-left: 5px;">鄂公网安备 42011102004061号</span></a>-->
+                <!--                <a target="_blank" href="http://www.beian.gov.cn" style=""><img src="/images/beian.png" style=""/><span style="color:#1e9fff;margin-left: 5px;">鄂公网安备 42011102004061号</span></a>-->
                 <a onclick="linkUs()" style="cursor: pointer;color:#1e9fff;">
                     <span id="sysNameId"></span>
                 </a>
@@ -342,7 +346,7 @@
     });
 
     //联系我们
-    function linkUs(){
+    function linkUs() {
         layer.open({
             //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
             type: 1,
@@ -359,7 +363,11 @@
         layer.open({
             content: '确定要退出登录么？',
             yes: function (index, layero) {
-                layer.open({
+                layer.close(index); //如果设定了yes回调，需进行手工关闭
+                CoreUtil.sendAjax("/sys/user/logout", null, function (res) {
+                    top.window.location.href = "/index/login";
+                }, "GET", true);
+                /*layer.open({
                     content: '真到了要说再见的时候吗？',
                     yes: function (index, layero) {
                         layer.open({
@@ -372,7 +380,7 @@
                             }
                         });
                     }
-                });
+                });*/
             }
         });
     };
@@ -383,8 +391,10 @@
             if (url != "" && url != null && url != undefined) {
                 element.tabAdd('tab', {
                     title: title
-                    , content: '<iframe data-frameid="' + id + '" frameborder="0" name="content" width="100%" src="' + url + '"></iframe>'
-                    , id: id
+                    ,
+                    content: '<iframe data-frameid="' + id + '" frameborder="0" name="content" width="100%" src="' + url + '"></iframe>'
+                    ,
+                    id: id
                 })
             }
             FrameWH();//计算框架高度
@@ -399,18 +409,22 @@
         }
     };
 
-    function hideLeftMenu(){
+    function hideLeftMenu() {
         // console.log("左侧菜单控制");
-        if($("#mainmenu").is(':hidden')){
+        if ($("#mainmenu").is(':hidden')) {
             //true为隐藏，false为显示
             //显示左侧菜单
             $("#mainmenu").show();
-            $("#layui-body-id").css("position",function(){return "fixed";});
+            $("#layui-body-id").css("position", function () {
+                return "fixed";
+            });
             $("#menuImgId").attr("src", "/images/wjb/menu_open.png");
-        }else{
+        } else {
             //隐藏左侧菜单
             $("#mainmenu").hide();
-            $("#layui-body-id").css("position",function(){return "inherit";});
+            $("#layui-body-id").css("position", function () {
+                return "inherit";
+            });
             $("#menuImgId").attr("src", "/images/wjb/menu_close.png");
         }
     }
@@ -427,7 +441,7 @@
     //获取系统参数
     CoreUtil.sendAjax("/config/queryByKey/sys_name", null, function (res) {
         // console.log(res);
-        if(res != null && res.data != null){
+        if (res != null && res.data != null) {
             $("#sysNameId").html(res.data.sysValue);
             $("#sysNameId2").html(res.data.sysValue);
         }
@@ -435,14 +449,14 @@
         layer.msg(res.msg);
     });
 
-    //获取当前登录者userId
+    //获取当前登录者userId invoke HomeController
     CoreUtil.sendAjax("/sys/home", null, function (res) {
         $("#menuImgId").attr("src", "/images/wjb/menu_open.png");
         userId = res.data.userInfo.id;
 
         //判断当前浏览器是否支持WebSocket
         if ('WebSocket' in window) {
-            onLineWebSocket = new WebSocket("ws://" + webSocketIp +　":8000/onLineWebsocket/" + userId);
+            onLineWebSocket = new WebSocket("ws://" + webSocketIp + ":8000/onLineWebsocket/" + userId);
         } else {
             layer.msg("当前浏览器不支持WebSocket");
         }

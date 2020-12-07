@@ -64,14 +64,14 @@ spring:
         minIdle: 1 # 连接池中的最小空闲连接 默认 0
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
-    driver-class-name: com.mysql.jdbc.Driver
+    driver-class-name: com.mysql.cj.jdbc.Driver
     druid:
       db1:
-        url: jdbc:mysql://127.0.0.1:3306/easy9?useUnicode=true&characterEncoding=utf-8&useSSL=false
+        url: jdbc:mysql://127.0.0.1:3306/easy9?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=GMT%2B8
         username: root
         password: root
       db2:
-        url: jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&characterEncoding=utf-8&useSSL=false
+        url: jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=GMT%2B8
         username: root
         password: root
       initialSize: 5 #配置初始化大小
@@ -113,7 +113,7 @@ system:
   loginCodeTimeOut: 2 #登录图片验证码存入Redis过期时间（单位：分钟）
   baidu_ak: yWKY5FVP34gGT3N7fRfMOVeP #根据IP获取归属地用到，百度API申请的AK，申请地址http://lbsyun.baidu.com/index.php?title=webapi/ip-api
   admin_email: wujiangbo2018@163.com #管理员邮箱
-  authorization_expired_date: 2020-12-30
+  authorization_expired_date: 2089-12-30
 
 bbs:
   postMonth: 2 #查询距离当前时间n个月以内的所有帖子信息

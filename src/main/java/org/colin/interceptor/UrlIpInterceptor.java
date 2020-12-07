@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author : wujiangbo(QQ:1134135987)
  * @version : 1.1.0.1
- * @description : 对URL和IP请求做验证，防止恶意刷新和暴力请求
+ * @Description : 对URL和IP请求做验证，防止恶意刷新和暴力请求
  * @date : 2020-09-18 14:38:00
  */
 @Slf4j
@@ -37,15 +38,15 @@ public class UrlIpInterceptor implements HandlerInterceptor {
     @Resource
     private RedisService redisService;
 
-    private long maxAccessCount = 5;//5次
+    private final long maxAccessCount = 5;//5次
 
-    private long existSeconds = 1;//1秒内
+    private final long existSeconds = 1;//1秒内
 
     private String BAD_IP_KEY = "interceptor_blcak_ip_key:";//黑名单IP存Redis的key
 
     private String URI_IP_COUNT = "interceptor_uri_ip_count_key:";//存URI+IP的次数到Redis的key
 
-    public UrlIpInterceptor(){
+    public UrlIpInterceptor() {
     }
 
     @Override
@@ -59,18 +60,18 @@ public class UrlIpInterceptor implements HandlerInterceptor {
              *     1秒内，同一IP访问同一接口次数超过5次，就将该IP置为黑名单72小时
              */
             Object blackIPTemp = redisService.get(BAD_IP_KEY + ip);//从redis中获取黑名单IP
-            String blackIP = blackIPTemp == null ? "" : (String)blackIPTemp;
-            if(!Tool.isBlank(blackIP)){
+            String blackIP = blackIPTemp == null ? "" : (String) blackIPTemp;
+            if (!Tool.isBlank(blackIP)) {
                 //IP存在于黑名单中
                 responseMessage(response, BaseResponseCode.BLACK_IP);
                 return false;
-            }else{
+            } else {
                 //IP不在黑名单中，开始验证频率
                 String uri_ip = uri + "_" + ip;
 //                log.info("ip={};uri={}", ip, uri);
                 Object uri_ip_count_temp = redisService.get(URI_IP_COUNT + uri_ip);
-                long uri_ip_count = uri_ip_count_temp == null ? 0 : Long.valueOf((String)uri_ip_count_temp);
-                if(uri_ip_count > maxAccessCount){
+                long uri_ip_count = uri_ip_count_temp == null ? 0 : Long.valueOf((String) uri_ip_count_temp);
+                if (uri_ip_count > maxAccessCount) {
                     //将IP加入黑名单
                     log.info("IP[{}]被加入黑名单", ip);
 //                    redisService.set(BAD_IP_KEY + ip, ip, 5, TimeUnit.SECONDS);//测试代码
@@ -78,9 +79,9 @@ public class UrlIpInterceptor implements HandlerInterceptor {
                     //访问次数超过指定次数
                     responseMessage(response, BaseResponseCode.OPER_SO_FAST);
                     return false;
-                }else{
+                } else {
                     //访问次数+1
-                    uri_ip_count ++;
+                    uri_ip_count++;
                     redisService.set(URI_IP_COUNT + uri_ip, uri_ip_count, existSeconds, TimeUnit.SECONDS);
                     return true;
                 }

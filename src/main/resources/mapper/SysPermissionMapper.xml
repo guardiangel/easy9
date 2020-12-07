@@ -19,7 +19,7 @@
         <result column="icon" jdbcType="VARCHAR" property="icon"/>
     </resultMap>
     <sql id="Base_Column_List">
-        id, code, `name`, perms, url, `method`, pid, order_num, `type`, `status`, create_time,
+        id, code, name, perms, url, method, pid, order_num, type, status, create_time,
         update_time, deleted, icon
     </sql>
 
@@ -33,7 +33,7 @@
                 code,
             </if>
             <if test="name != null">
-                `name`,
+                name,
             </if>
             <if test="perms != null">
                 perms,
@@ -42,7 +42,7 @@
                 url,
             </if>
             <if test="method != null">
-                `method`,
+                method,
             </if>
             <if test="pid != null">
                 pid,
@@ -51,10 +51,10 @@
                 order_num,
             </if>
             <if test="type != null">
-                `type`,
+                type,
             </if>
             <if test="status != null">
-                `status`,
+                status,
             </if>
             <if test="createTime != null">
                 create_time,
@@ -129,7 +129,7 @@
     <!--根据用户ID查询拥有的所有资源权限-->
     <select id="selectInfoByUserIds" resultMap="BaseResultMap">
         select
-        t1.id, t1.code, t1.`name`, t1.perms, t1.url, t1.`method`, t1.pid, t1.order_num, t1.`type`, t1.`status`, t1.create_time, t1.update_time, t1.deleted, t1.icon
+        t1.id, t1.code, t1.name, t1.perms, t1.url, t1.method, t1.pid, t1.order_num, t1.type, t1.status, t1.create_time, t1.update_time, t1.deleted, t1.icon
         from sys_permission t1
         INNER JOIN sys_role_permission t2 on t1.id = t2.permission_id
         INNER JOIN sys_user_role t3 on t2.role_id = t3.role_id and t3.user_id = #{userId}
@@ -166,7 +166,7 @@
                 code = #{code,jdbcType=VARCHAR},
             </if>
             <if test="name != null">
-                `name` = #{name,jdbcType=VARCHAR},
+                name = #{name,jdbcType=VARCHAR},
             </if>
             <if test="perms != null">
                 perms = #{perms,jdbcType=VARCHAR},
@@ -175,7 +175,7 @@
                 url = #{url,jdbcType=VARCHAR},
             </if>
             <if test="method != null">
-                `method` = #{method,jdbcType=VARCHAR},
+                method = #{method,jdbcType=VARCHAR},
             </if>
             <if test="pid != null">
                 pid = #{pid,jdbcType=VARCHAR},
@@ -184,10 +184,10 @@
                 order_num = #{orderNum,jdbcType=INTEGER},
             </if>
             <if test="type != null">
-                `type` = #{type,jdbcType=TINYINT},
+                type = #{type,jdbcType=TINYINT},
             </if>
             <if test="status != null">
-                `status` = #{status,jdbcType=TINYINT},
+                status = #{status,jdbcType=TINYINT},
             </if>
             <if test="createTime != null">
                 create_time = #{createTime,jdbcType=TIMESTAMP},

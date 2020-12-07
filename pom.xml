@@ -46,7 +46,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.47</version>
+            <version>8.0.22</version>
         </dependency>
         <!--数据源-->
         <dependency>
@@ -124,7 +124,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
-            <scope>provided</scope>
+            <scope>true</scope>
             <optional>true</optional>
         </dependency>
 
@@ -337,7 +337,7 @@
                 <executions>
                     <execution>
                         <id>Generate MyBatis Artifacts</id>
-                        <!--<phase>package</phase>-->
+                       <!-- <phase>package</phase>-->
                         <!--防止打包时重新生成代码覆盖已开发好的代码-->
                         <phase>deploy</phase>
                         <goals>
@@ -358,6 +358,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <!-- 如果不设置fork,那么不会restart,devtools热部署不会起作用 -->
+                    <!--<fork>true</fork>-->
                     <fork>true</fork>
                 </configuration>
             </plugin>

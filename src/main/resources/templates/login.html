@@ -38,11 +38,11 @@
         margin-top: 15px;
     }
 
-    .layui-layer-setwin{
+    .layui-layer-setwin {
         top: 1px;
     }
 
-    .loginMsgStyle{
+    .loginMsgStyle {
         font-size: 16px;
         color: #009f95;
         margin-top: 20px;
@@ -50,11 +50,11 @@
         line-height: 30px;
     }
 
-    li{
-        list-style-type: decimal;/*li标签显示数字符号*/
+    li {
+        list-style-type: decimal; /*li标签显示数字符号*/
     }
 
-    .portalClass{
+    .portalClass {
         position: absolute;
         left: 50%;
         margin: -50px 0 0 -150px;
@@ -67,30 +67,36 @@
 <div class="layui-carousel carousel" lay-filter="carousel" id="carousel">
     <div carousel-item="">
         <div><img src="/images/bg2.jpg" style="width: 100%;height: 100%;"></div>
-<!--        <div><img src="/images/bg.jpg" style="width: 100%;height: 100%;"></div>-->
+        <!--        <div><img src="/images/bg.jpg" style="width: 100%;height: 100%;"></div>-->
     </div>
 
     <div class="layui-container login">
-        <form id="loginForm" action="/user/login" style="margin-top: 10px;" class="layui-form" method="post" layui-form-pane>
+        <form id="loginForm" action="/user/login" style="margin-top: 10px;" class="layui-form" method="post"
+              layui-form-pane>
             <div style="text-align: center;margin-bottom: 20px;">
                 <span style="color: #1e9fff;font-size: 30px;" id="sysNameId"></span>
             </div>
             <input name="type" type="hidden" value="1">
             <input name="time" id="time" type="hidden" value="">
-            <input type="text" name="username" lay-verify="" placeholder="请输入登录账号" autocomplete="off" class="layui-input">
+            <input type="text" name="username" lay-verify="" placeholder="请输入登录账号" autocomplete="off"
+                   class="layui-input" value="admin">
             <br>
-            <input type="password" name="password" lay-verify="" placeholder="请输入登录密码" autocomplete="off" class="layui-input">
+            <input type="password" name="password" lay-verify="" placeholder="请输入登录密码" autocomplete="off"
+                   class="layui-input" value="123456">
             <br>
             <div>
                 <div style="float: left;">
-                    <input type="text" name="code" lay-verify="" placeholder="请输入验证码" autocomplete="off" class="layui-input" style="width: 200px;" maxlength="4">
+                    <input type="text" name="code" lay-verify="" placeholder="请输入验证码" autocomplete="off"
+                           class="layui-input" style="width: 200px;" maxlength="4">
                 </div>
                 <div style="float: left;margin-left: 3px;">
-                    <img src="" id="code" alt="验证码" onclick="changeCode()" style="height: 38px;width: 97px;border-radius: 3px;"/>
+                    <img src="" id="code" alt="验证码" onclick="changeCode()"
+                         style="height: 38px;width: 97px;border-radius: 3px;"/>
                 </div>
             </div>
             <br>
-            <a style="width: 300px;" class="layui-btn layui-btn-normal " lay-filter="login-submit" lay-submit="" id="submit">登录</a>
+            <a style="width: 300px;" class="layui-btn layui-btn-normal " lay-filter="login-submit" lay-submit=""
+               id="submit">登录</a>
             <!--
             <div style="text-align: right;margin-top: 10px;font-size: 10px;">
                 <a style="color: #ecdfdf;cursor: pointer;" onclick="faceLogin()">人脸登录</a>
@@ -100,8 +106,8 @@
     </div>
     <div class="portalClass">
         <span id="companyName"></span>
-<!--        <a target="_blank" href="http://www.beian.gov.cn" style=""><img src="/images/beian.png" style=""/><span style="color:#1e9fff;margin-left: 5px;">鄂公网安备 42011102004061号&nbsp;&nbsp;&nbsp;鄂ICP20013491号-1</span></a>-->
-<!--        <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=42011102004061" style=""><img src="/images/beian.png" style=""/><span style="color:#1e9fff;margin-left: 5px;">鄂公网安备 42011102004061号&nbsp;&nbsp;&nbsp;鄂ICP20013491号-1</span></a>-->
+        <!--        <a target="_blank" href="http://www.beian.gov.cn" style=""><img src="/images/beian.png" style=""/><span style="color:#1e9fff;margin-left: 5px;">鄂公网安备 42011102004061号&nbsp;&nbsp;&nbsp;鄂ICP20013491号-1</span></a>-->
+        <!--        <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=42011102004061" style=""><img src="/images/beian.png" style=""/><span style="color:#1e9fff;margin-left: 5px;">鄂公网安备 42011102004061号&nbsp;&nbsp;&nbsp;鄂ICP20013491号-1</span></a>-->
     </div>
 </div>
 <div id="loginMsgDiv" style="display: none;" class="loginMsgStyle">
@@ -127,47 +133,61 @@
     let $ = jQuery = layui.jquery;
     let form = layui.form;
     let carousel = layui.carousel;
+
+    //DOM加载完毕之后执行
     $(function () {
 
         //获取公司名称
-        CoreUtil.sendAjax("/config/queryByKey/company_name", null, function (res) {
-            // console.log(res);
-            if(res != null && res.data != null){
-                $("#companyName").html(res.data.sysValue);
-            }
-        }, "GET", false, function (res) {
-            layer.msg(res.msg);
-        });
-
-        //获取平台名称
+        /* CoreUtil.sendAjax("/config/queryByKey/company_name", null, function (res) {
+             //console.log(res);
+             if (res != null && res.data != null) {
+                 $("#companyName").html(res.data.sysValue);
+                 //alert("res.data.sysValue=" + res.data.sysValue);
+             }
+         }, "GET", false, function (res) {
+             layer.msg(res.msg);
+         });*/
+        /*//获取平台名称
         CoreUtil.sendAjax("/config/queryByKey/sys_name", null, function (res) {
             // console.log(res);
-            if(res != null && res.data != null){
+            if (res != null && res.data != null) {
                 $("#sysNameId").html(res.data.sysValue);
             }
         }, "GET", false, function (res) {
             layer.msg(res.msg);
+        });*/
+
+        $.get("/config/queryByKey/company_name", {}, function (res) {
+            if (res != null && res.data != null) {
+                $("#companyName").html(res.data.sysValue);
+            }
         });
+
+        $.get("/config/queryByKey/sys_name", {}, function (res) {
+            if (res != null && res.data != null) {
+                $("#sysNameId").html(res.data.sysValue);
+            }
+        });
+
 
         //获取首页提示信息
         CoreUtil.sendAjax("/notice/queryByType/1003", null, function (res) {
-            // console.log(res);
-            if(res != null && res.data != null){
+            if (res != null && res.data != null) {
                 $("#objNodeId").html(res.data.noticeContent);
-                layer.open({
-                    //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
-                    type: 1,
-                    offset: '50px',
-                    skin: 'layui-layer-molv', //目前layer内置的skin有：layui-layer-lan layui-layer-molv
-                    resize: false, //默认情况下，你可以在弹层右下角拖动来拉伸尺寸。如果对指定的弹层屏蔽该功能，设置 false即可。该参数对loading、tips层无效
-                    maxmin: false, //该参数值对type:1和type:2有效。默认不显示最大小化按钮。需要显示配置maxmin: true即可
-                    shade: [0.8, '#393D49'], //默认是0.3透明度的黑色背景（'#000'）。如果你想定义别的颜色，可以shade: [0.8, '#393D49']；如果你不想显示遮罩，可以shade: 0
-                    shadeClose: false, //如果你的shade是存在的，那么你可以设定shadeClose来控制点击弹层外区域关闭
-                    anim: 6, //弹出动画
-                    title: '感谢您花一分钟阅读以下说明，谢谢',
-                    area: ['100%', '100%'],
-                    content: $("#loginMsgDiv") //引用的弹出层的页面层的方式加载修改界面表单
-                });
+                /* layer.open({
+                     //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                     type: 1,
+                     offset: '50px',
+                     skin: 'layui-layer-molv', //目前layer内置的skin有：layui-layer-lan layui-layer-molv
+                     resize: false, //默认情况下，你可以在弹层右下角拖动来拉伸尺寸。如果对指定的弹层屏蔽该功能，设置 false即可。该参数对loading、tips层无效
+                     maxmin: false, //该参数值对type:1和type:2有效。默认不显示最大小化按钮。需要显示配置maxmin: true即可
+                     shade: [0.8, '#393D49'], //默认是0.3透明度的黑色背景（'#000'）。如果你想定义别的颜色，可以shade: [0.8, '#393D49']；如果你不想显示遮罩，可以shade: 0
+                     shadeClose: false, //如果你的shade是存在的，那么你可以设定shadeClose来控制点击弹层外区域关闭
+                     anim: 6, //弹出动画
+                     title: '感谢您花一分钟阅读以下说明，谢谢',
+                     area: ['100%', '100%'],
+                     content: $("#loginMsgDiv") //引用的弹出层的页面层的方式加载修改界面表单
+                 });*/
             }
         }, "GET", false, function (res) {
             layer.msg(res.msg);
@@ -175,10 +195,11 @@
 
         //监听回车事件
         document.onkeydown = function (event) {
-            let e = event || window.event;
-            if (e && e.keyCode == 13) { //回车键的键值为13
-                $("#submit").click(); //调用登录按钮的登录事件
-            }
+
+             let e = event || window.event;
+             if (e && e.keyCode === 13) { //回车键的键值为13
+                 $("#submit").click(); //调用登录按钮的登录事件
+             }
         };
 
         let currentTime = new Date().getTime();
@@ -187,18 +208,18 @@
         $("#code").attr('src', codeUlr);
         form.on('submit(login-submit)', function (data) {
             CoreUtil.sendAjax("/sys/user/login", JSON.stringify(data.field), function (res) {
-                var ipAddress = res.data.ipAddress;
-                var showMsg = '';
-                if('' != ipAddress){
+                let ipAddress = res.data.ipAddress;
+                let showMsg = '';
+                if ('' != ipAddress) {
                     showMsg = '欢迎您，来自[' + ipAddress + ']的朋友';
-                }else{
+                } else {
                     showMsg = '登录成功，欢迎您';
                 }
                 layer.msg(showMsg, {
                     icon: 6,  //1:对勾;2:叉叉;3:问号;4:一把锁;5:不开心表情;6:开心表情;7:感叹号;
-                    time: 4000,  //如果不配置，默认是3秒关闭
+                    time: 1000,  //如果不配置，默认是3秒关闭
                     shade: 0
-                },function(){
+                }, function () {
                     // 回调函数
                     CoreUtil.setData("access_token", res.data.accessToken);
                     CoreUtil.setData("refresh_token", res.data.refreshToken);

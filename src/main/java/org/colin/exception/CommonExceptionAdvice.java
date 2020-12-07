@@ -1,6 +1,6 @@
 package org.colin.exception;
 
-import com.mysql.jdbc.PacketTooBigException;
+import com.mysql.cj.jdbc.exceptions.PacketTooBigException;
 import io.lettuce.core.RedisConnectionException;
 import lombok.extern.slf4j.Slf4j;
 import org.colin.utils.Tool;
